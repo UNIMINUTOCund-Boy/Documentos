@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sentinel · Libro interactivo de Gerencia de Proyectos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700&family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g1:#0B4AD3;--g2:#0A3FB8;--g3:#072C86;
+  --navy:#052570;--ink:#0B1F55;--paper:#FFFBF0;--paper2:#F4EEDC;--yellow:#FFC20E;--royal:#0A43C4;--sky:#7DB4FF;--coral:#FF6B5B;--ok:#16A34A;--bad:#E5484D;
+  --disp:'Bangers','Impact',system-ui,sans-serif;--head:'Montserrat',system-ui,sans-serif;--body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;--comic:'Comic Neue','Comic Sans MS',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--body);color:var(--ink);background:linear-gradient(160deg,var(--g1) 0%,var(--g2) 55%,var(--g3) 100%);transition:background .6s;overflow:hidden;-webkit-font-smoothing:antialiased}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;transition:opacity .35s}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;border-radius:8px}
+
+.app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;align-items:center;padding:10px 12px 8px;gap:8px}
+.hdr{width:min(1020px,100%);display:flex;align-items:center;gap:8px;color:#fff}
+.hdr .brand{font:400 22px var(--disp);letter-spacing:.08em;color:var(--yellow);text-shadow:2px 2px 0 var(--navy);margin-right:auto;white-space:nowrap}
+.chip{background:rgba(5,37,112,.78);color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:99px;padding:8px 14px;font:700 12.5px var(--head);display:inline-flex;align-items:center;gap:6px;backdrop-filter:blur(4px);white-space:nowrap}
+button.chip:hover{border-color:var(--yellow);color:var(--yellow)}
+.chip.who{max-width:34vw;overflow:hidden;text-overflow:ellipsis}
+
+.book{position:relative;width:min(1020px,100%);flex:1;min-height:0;perspective:2400px}
+.book::before{content:"";position:absolute;inset:6px -7px -7px 7px;border-radius:14px;background:repeating-linear-gradient(90deg,#EDE6D2 0 2px,#fff 2px 4px);box-shadow:0 22px 50px rgba(0,0,0,.35)}
+.leaf{position:absolute;inset:0;border-radius:12px 16px 16px 12px;background:var(--paper);border:3px solid var(--navy);box-shadow:inset 22px 0 26px -18px rgba(5,37,112,.35);overflow:hidden;display:flex;flex-direction:column;transform-origin:left center;backface-visibility:hidden}
+.leaf.under{z-index:1}
+.leaf.top{z-index:3}
+.leaf.turn-out{z-index:4;animation:turnOut .85s cubic-bezier(.55,.05,.35,1) forwards}
+.leaf.turn-in{z-index:4;animation:turnIn .85s cubic-bezier(.55,.05,.35,1) both}
+@keyframes turnOut{0%{transform:rotateY(0);box-shadow:inset 22px 0 26px -18px rgba(5,37,112,.35)}60%{opacity:1}100%{transform:rotateY(-112deg);opacity:0;box-shadow:-20px 0 40px rgba(0,0,0,.5)}}
+@keyframes turnIn{0%{transform:rotateY(-112deg);opacity:0}40%{opacity:1}100%{transform:rotateY(0);opacity:1}}
+.pg{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:22px 26px 20px 36px;scrollbar-width:thin}
+.pgfoot{display:flex;justify-content:space-between;align-items:center;padding:6px 20px 8px 34px;font:700 11px var(--head);letter-spacing:.12em;text-transform:uppercase;color:#6B7BA8;border-top:2px dashed #E0D8BC;flex:none}
+
+.nav{width:min(1020px,100%);display:flex;align-items:center;gap:10px}
+.nb{background:var(--yellow);color:var(--navy);font:800 14px var(--head);padding:12px 20px;border-radius:12px;box-shadow:0 4px 0 #B98A00;transition:transform .12s,box-shadow .12s,opacity .2s;white-space:nowrap}
+.nb:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 0 #B98A00}
+.nb:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #B98A00}
+.nb:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.nb.ghost{background:rgba(5,37,112,.8);color:#fff;box-shadow:none;border:1.5px solid rgba(255,255,255,.3)}
+.prog{flex:1;display:flex;gap:4px;align-items:center;justify-content:center}
+.prog i{flex:1;max-width:44px;height:8px;border-radius:99px;background:rgba(255,255,255,.28);position:relative;overflow:hidden}
+.prog i b{position:absolute;inset:0;width:0;background:var(--yellow);transition:width .5s}
+.hintline{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%)}
+.gate{font:700 12px var(--head);color:#fff;text-align:center;min-height:16px;opacity:.9;width:min(1020px,100%)}
+
+/* ── tipografías de página ── */
+.ribbon{display:inline-block;background:var(--navy);color:var(--yellow);font:800 12px var(--head);letter-spacing:.14em;text-transform:uppercase;padding:6px 14px;transform:skewX(-8deg);border-radius:4px}
+.ribbon span{display:inline-block;transform:skewX(8deg)}
+.ttl{font:800 clamp(24px,4.2vw,38px)/1.05 var(--head);color:var(--navy);letter-spacing:-.02em;margin:10px 0 6px;position:relative;padding-left:18px}
+.ttl::before{content:"";position:absolute;left:0;top:.06em;bottom:.06em;width:10px;background:var(--yellow);border-radius:3px;transform:skewX(-8deg)}
+.lede{color:#33447A;font-size:15px;line-height:1.55;max-width:70ch}
+.sfx{position:relative;display:block;text-align:right;line-height:1;margin:-2px 2px 4px auto;width:max-content;max-width:100%;font:400 clamp(20px,3vw,30px) var(--disp);letter-spacing:.06em;color:var(--yellow);-webkit-text-stroke:1.5px var(--navy);paint-order:stroke fill;text-shadow:3px 3px 0 var(--navy);transform:rotate(-5deg);z-index:5;opacity:0}
+.in .sfx{animation:sfxPop .5s .5s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes sfxPop{from{opacity:0;transform:scale(.2) rotate(-25deg)}to{opacity:1;transform:scale(1) rotate(-5deg)}}
+
+/* ── portada ── */
+.cover{background:linear-gradient(150deg,#0B4AD3,#072C86);color:#fff;border-color:#031A52;position:relative}
+.cover .pg{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:26px 28px 26px 44px;position:relative;z-index:2}
+.cover::before{content:"";position:absolute;left:0;top:0;bottom:0;width:34px;background:linear-gradient(90deg,#031A52,#072C86 70%,rgba(0,0,0,0));z-index:3}
+.cover .blk{position:absolute;z-index:1;border-radius:14px;opacity:.9}
+.cover .tagc{background:var(--yellow);color:var(--navy);font:800 12px var(--head);letter-spacing:.16em;text-transform:uppercase;padding:7px 16px;transform:skewX(-8deg);border-radius:4px}
+.cover h1{font:400 clamp(54px,12vw,120px)/.9 var(--disp);letter-spacing:.06em;color:#fff;text-shadow:5px 5px 0 var(--navy),0 0 40px rgba(255,194,14,.35);-webkit-text-stroke:2px var(--navy)}
+.cover h1 em{font-style:normal;color:var(--yellow)}
+.cover .sub{font:700 clamp(15px,2.4vw,20px)/1.35 var(--head);max-width:30ch;color:#E3EDFF}
+.cover .cast{display:flex;gap:0;justify-content:center;margin:2px 0}
+.cover .cast .cw2{width:clamp(56px,11vw,92px);margin:0 -6px}
+.cover .cast .cw2 .chr{width:100%;height:auto;display:block}
+.cover label{font:700 11.5px var(--head);letter-spacing:.18em;text-transform:uppercase;color:var(--yellow)}
+.cover input{width:min(420px,86vw);background:rgba(3,26,82,.7);border:2px solid rgba(255,255,255,.4);border-radius:12px;padding:14px 16px;color:#fff;font:700 18px var(--head);text-align:center}
+.cover input:focus{outline:none;border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,194,14,.25)}
+.cover input::placeholder{color:#9DB8F2;font-weight:600}
+.cover .small{font-size:12px;color:#C9DAFF;max-width:60ch;line-height:1.5}
+.resumebox{display:none;gap:8px;flex-direction:column;align-items:center}
+
+/* ── reparto ── */
+.cast-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:16px}
+.cc{background:#fff;border:3px solid var(--navy);border-radius:16px;box-shadow:5px 5px 0 var(--navy);padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;opacity:0;transform:translateY(16px) rotate(-1deg);transition:transform .2s}
+.in .cc{animation:ccIn .5s cubic-bezier(.2,1.2,.4,1) forwards}
+@keyframes ccIn{to{opacity:1;transform:none}}
+.cc:hover{transform:translateY(-4px) rotate(.4deg)}
+.cc .av{height:130px;border-radius:10px;display:flex;justify-content:center;align-items:flex-end;overflow:hidden;position:relative}
+.cc .av .chr{height:120px;width:auto}
+.cc h3{font:800 17px var(--head);color:var(--navy);line-height:1.1}
+.cc .role{font:700 12px var(--head);color:var(--royal);text-transform:uppercase;letter-spacing:.06em}
+.cc p{font-size:13.5px;line-height:1.5;color:#33447A}
+.cc .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+.cc .tags span{background:#E7F0FF;border:1.5px solid #B9D1FF;color:var(--navy);font:700 11px var(--head);padding:4px 9px;border-radius:99px}
+.cc .tags span.ar{background:var(--yellow);border-color:var(--navy)}
+
+/* ── personajes animados ── */
+.chr{display:block;overflow:visible}
+.chr.flip{transform:scaleX(-1)}
+.chr .body{animation:bob 2.6s ease-in-out infinite;transform-origin:50% 100%}
+.chr .eye{animation:blink 4.2s infinite;transform-box:fill-box;transform-origin:center}
+.chr .sweat{animation:sweat 1.6s infinite}
+.chr .prop{animation:wob 1.8s ease-in-out infinite;transform-origin:70% 90%}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px) scaleY(1.01)}}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+@keyframes sweat{0%{transform:translateY(0);opacity:1}100%{transform:translateY(12px);opacity:0}}
+@keyframes wob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(8deg)}}
+
+/* ── historieta ── */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+.panel{position:relative;border:3px solid var(--navy);border-radius:8px;background:#fff;box-shadow:5px 5px 0 var(--navy);display:flex;flex-direction:column;overflow:hidden;opacity:0;transform:scale(.82) rotate(var(--rot,0deg))}
+.panel.in{animation:panelPop .55s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes panelPop{to{opacity:1;transform:scale(1) rotate(var(--rot,0deg))}}
+.panel .cap{background:var(--yellow);color:var(--navy);font:800 12px/1.35 var(--head);padding:7px 10px;border-bottom:3px solid var(--navy);letter-spacing:.01em}
+.scene{position:relative;flex:1;min-height:190px;display:flex;flex-direction:column;justify-content:space-between;padding:10px 10px 0;background-image:radial-gradient(rgba(5,37,112,.09) 1.2px,transparent 1.4px);background-size:9px 9px}
+.bg-office{background-color:#DCE9FF}.bg-warm{background-color:#FFE8A8}.bg-night{background-color:#6C8DE0}.bg-alert{background-color:#FFD6CC}.bg-purple{background-color:#E3DBFF}.bg-green{background-color:#CFF2DE}
+.bub{position:relative;z-index:3;max-width:88%;background:#fff;border:2.5px solid var(--navy);border-radius:16px;padding:8px 12px;font:700 14px/1.35 var(--comic);color:var(--navy);margin-bottom:12px;opacity:0;transform:scale(.6);transform-origin:var(--to,30% 100%)}
+.in .bub{animation:bubPop .4s calc(.35s + var(--d,0s)) cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes bubPop{to{opacity:1;transform:scale(1)}}
+.bub::after{content:"";position:absolute;bottom:-11px;left:var(--tl,26%);width:16px;height:16px;background:#fff;border-right:2.5px solid var(--navy);border-bottom:2.5px solid var(--navy);transform:rotate(45deg) skew(10deg,10deg)}
+.bub.r{align-self:flex-end}
+.bub.l{align-self:flex-start}
+.chrow{position:relative;height:108px;flex:none;z-index:2}
+.cw{position:absolute;bottom:0;width:78px;transform:translateX(-50%)}
+.cw .chr{width:100%;height:auto}
+.prp{position:absolute;z-index:1;line-height:1;animation:float 3s ease-in-out infinite;filter:drop-shadow(2px 3px 0 rgba(5,37,112,.25))}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-8px) rotate(5deg)}}
+
+/* ── portada de capítulo ── */
+.chcover{background:linear-gradient(155deg,var(--g1),var(--g3));color:#fff;border-color:var(--navy)}
+.chcover .pg{display:flex;flex-direction:column;justify-content:center;gap:12px;padding:26px 30px 26px 46px;position:relative}
+.chcover .num{font:400 clamp(90px,22vw,200px)/.8 var(--disp);color:transparent;-webkit-text-stroke:3px var(--yellow);letter-spacing:.04em;opacity:.95}
+.chcover h2{font:400 clamp(40px,8vw,76px)/.95 var(--disp);letter-spacing:.04em;color:#fff;text-shadow:4px 4px 0 var(--navy)}
+.chcover .yr{display:inline-block;background:var(--yellow);color:var(--navy);font:800 14px var(--head);padding:6px 16px;transform:skewX(-8deg);border-radius:4px;width:max-content}
+.chcover .area{font:800 13px var(--head);letter-spacing:.16em;text-transform:uppercase;color:var(--yellow)}
+.chcover .goal{max-width:52ch;font-size:16px;line-height:1.55;color:#E3EDFF;background:rgba(5,37,112,.45);border-left:5px solid var(--yellow);padding:10px 14px;border-radius:0 10px 10px 0}
+.chcover .big{position:absolute;right:26px;top:22px;font-size:clamp(56px,12vw,110px);animation:float 3.2s ease-in-out infinite}
+
+/* ── archivo / concepto ── */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px;margin-top:14px}
+.fcard{perspective:900px;height:178px;cursor:pointer}
+.fi{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.3,1.2,.4,1);transform-style:preserve-3d}
+.fcard.on .fi{transform:rotateY(180deg)}
+.ff,.fb{position:absolute;inset:0;border:3px solid var(--navy);border-radius:14px;backface-visibility:hidden;padding:14px;display:flex;flex-direction:column;box-shadow:4px 4px 0 var(--navy)}
+.ff{background:#fff;align-items:center;justify-content:center;text-align:center;gap:6px}
+.ff .ic{font-size:44px}
+.ff b{font:800 15px var(--head);color:var(--navy)}
+.ff small{font:700 10.5px var(--head);letter-spacing:.1em;text-transform:uppercase;color:#7A8BB8}
+.fb{background:var(--navy);color:#fff;transform:rotateY(180deg);justify-content:center;font-size:13.5px;line-height:1.5}
+.fb b{color:var(--yellow);font:800 13px var(--head);margin-bottom:6px;display:block}
+.callout{display:flex;gap:12px;margin-top:14px;border:3px solid var(--navy);border-radius:12px;padding:12px 14px;background:#FFF3C4;box-shadow:4px 4px 0 var(--navy);font-size:14px;line-height:1.5}
+.callout.w{background:#FFE3DD}
+.callout b{display:block;font:800 12px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--royal);margin-bottom:2px}
+.callout.w b{color:#B8321F}
+.quote{margin-top:16px;background:var(--navy);color:#fff;border-radius:14px;padding:16px 18px 16px 62px;position:relative;font:700 clamp(16px,2.4vw,20px)/1.35 var(--comic);box-shadow:5px 5px 0 var(--yellow)}
+.quote::before{content:"“";position:absolute;left:14px;top:-6px;font:400 78px var(--disp);color:var(--yellow)}
+.quote small{display:block;margin-top:6px;font:700 11px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--yellow)}
+.quote .owl{position:absolute;right:10px;bottom:-14px;width:54px}
+.collect{animation:collect .8s cubic-bezier(.2,1.5,.4,1)}
+@keyframes collect{0%{transform:scale(.6) rotate(-4deg);opacity:0}100%{transform:none;opacity:1}}
+
+/* ── ejercicios ── */
+.exq{font:800 clamp(18px,2.8vw,24px)/1.25 var(--head);color:var(--navy);margin:8px 0 14px}
+.opts{display:grid;gap:10px}
+.op{display:flex;gap:12px;align-items:flex-start;text-align:left;background:#fff;border:3px solid var(--navy);border-radius:12px;padding:12px 14px;font:600 15px/1.4 var(--body);box-shadow:3px 3px 0 var(--navy);transition:transform .12s,background .2s}
+.op .k{flex:none;width:28px;height:28px;border-radius:8px;background:var(--yellow);border:2px solid var(--navy);display:grid;place-items:center;font:800 13px var(--head)}
+.op:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--navy)}
+.op.ok{background:#CFF5DB;border-color:#0E7A38}.op.no{background:#FFD9DA;border-color:#B91C1C;animation:shake .4s}.op.dim{opacity:.55}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.col{display:grid;gap:9px;align-content:start}
+.col h4{font:800 12px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--royal)}
+.it{background:#fff;border:3px solid var(--navy);border-radius:12px;padding:10px 12px;font:600 14px/1.38 var(--body);text-align:left;box-shadow:3px 3px 0 var(--navy);transition:transform .12s}
+.it.sel{background:#FFF3C4;transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--yellow),5px 5px 0 2px var(--navy)}
+.it.done{background:#CFF5DB;border-color:#0E7A38;pointer-events:none}
+.it.err{animation:shake .4s;background:#FFD9DA}
+.bk{margin-top:4px;display:grid;gap:12px}
+.bk.c3{grid-template-columns:repeat(3,1fr)}.bk.c2{grid-template-columns:1fr 1fr}
+.drop{min-height:92px;border:3px dashed var(--navy);border-radius:14px;padding:10px;display:grid;gap:8px;align-content:start;background:rgba(10,67,196,.06);cursor:pointer}
+.drop:hover{background:rgba(255,194,14,.2)}
+.drop h4{font:800 13px var(--head);color:var(--navy)}
+.drop .it{font-size:13px;padding:8px 10px}
+.pool{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px;margin-bottom:12px}
+.seq{display:grid;gap:8px;margin-bottom:12px}
+.seq .slot{border:3px dashed var(--navy);border-radius:10px;padding:8px 12px;font:700 14px var(--head);min-height:44px;background:rgba(10,67,196,.06);display:flex;align-items:center;gap:10px}
+.seq .slot b{flex:none;width:26px;height:26px;border-radius:50%;background:var(--yellow);border:2px solid var(--navy);display:grid;place-items:center;font-size:12px}
+.seq .slot.f{background:#CFF5DB;border-style:solid;border-color:#0E7A38}
+.fb2{margin-top:14px;border:3px solid var(--navy);border-radius:12px;padding:12px 14px;background:#fff;font-size:14px;line-height:1.5;display:none;box-shadow:4px 4px 0 var(--navy)}
+.fb2.on{display:block;animation:collect .5s}
+.fb2 h5{font:800 15px var(--head);margin-bottom:4px}
+.fb2.good h5{color:#0E7A38}.fb2.mid h5{color:#B26A00}.fb2.bad h5{color:#B91C1C}
+.stars{font-size:24px;letter-spacing:3px}
+
+/* ── clínica / fin ── */
+.sit{border:3px solid var(--navy);border-radius:14px;padding:12px;background:#fff;box-shadow:4px 4px 0 var(--navy);margin-top:12px}
+.sit h4{font:800 13px var(--head);letter-spacing:.12em;text-transform:uppercase;color:var(--royal);margin-bottom:8px}
+.sit .two .op{font-size:14px}
+.certbox{border:3px solid var(--navy);border-radius:10px;padding:6px;background:#fff;box-shadow:5px 5px 0 var(--navy);margin-top:12px}
+.certbox img{width:100%;height:auto;display:block;border-radius:4px;min-height:80px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.stat{flex:1;min-width:110px;background:#fff;border:3px solid var(--navy);border-radius:12px;padding:10px;text-align:center;box-shadow:3px 3px 0 var(--navy)}
+.stat b{display:block;font:800 26px var(--head);color:var(--royal)}.stat span{font:700 10.5px var(--head);letter-spacing:.1em;text-transform:uppercase;color:#6B7BA8}
+
+/* ── índice (modal) ── */
+.modal{position:fixed;inset:0;z-index:20;background:rgba(3,26,82,.72);display:none;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(3px)}
+.modal.on{display:flex}
+.mbox{background:var(--paper);border:3px solid var(--navy);border-radius:16px;width:min(640px,100%);max-height:88dvh;overflow:auto;padding:18px;box-shadow:8px 8px 0 var(--yellow)}
+.mbox h3{font:800 22px var(--head);color:var(--navy);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.mrow{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:10px 12px;border:2.5px solid var(--navy);border-radius:12px;background:#fff;margin-top:8px;font:700 14px var(--head);color:var(--navy)}
+.mrow:disabled{opacity:.4;cursor:not-allowed}
+.mrow:hover:not(:disabled){background:#FFF3C4}
+.mrow .e{font-size:26px}.mrow small{display:block;font:600 12px var(--body);color:#5B6C99}.mrow .s{margin-left:auto;font-size:14px;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:78px;width:max-content;transform:translate(-50%,200%);opacity:0;visibility:hidden;z-index:30;background:var(--navy);color:var(--yellow);border:2px solid var(--yellow);border-radius:99px;padding:11px 20px;font:800 13.5px var(--head);transition:transform .4s cubic-bezier(.2,1.3,.4,1),opacity .3s,visibility .4s;max-width:90vw;text-align:center}
+.toast.on{transform:translate(-50%,0);opacity:1;visibility:visible}
+
+@media(max-width:720px){
+  .app{padding:8px 8px 6px;gap:6px}
+  .hdr .brand{font-size:19px}.chip{padding:7px 10px;font-size:11.5px}.chip .lb{display:none}
+  .cgrid{grid-template-columns:1fr}
+  .pg{padding:16px 14px 14px 24px}
+  .two{grid-template-columns:1fr}.bk.c3,.bk.c2{grid-template-columns:1fr}
+  .nb{padding:11px 14px;font-size:13px}
+  .scene{min-height:196px}
+  .cover .pg{padding:20px 14px 20px 34px}
+  .chcover .pg{padding:20px 16px 20px 34px}
+  .pgfoot{padding:5px 12px 6px 26px;font-size:10px}
+  .prog i{max-width:30px}
+}
+@media(prefers-reduced-motion:reduce){.leaf.turn-out,.leaf.turn-in{animation-duration:.01s}}
+
+.hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.hd .ttl{margin:0;font-size:clamp(22px,3.4vw,30px)}
+
+</style></head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="app">
+  <div class="hdr" id="hdr">
+    <div class="brand">SENTINEL</div>
+    <span class="chip who" id="who2"><span id="who">Lector/a</span></span>
+    <span class="chip" title="Estrellas ganadas">⭐ <span id="stars">0</span></span>
+    <button class="chip" id="castBtn">🎭 <span class="lb">Reparto</span></button>
+    <button class="chip" id="idxBtn">📖 <span class="lb">Índice</span></button>
+  </div>
+  <div class="book" id="book"></div>
+  <div class="gate" id="gate"></div>
+  <div class="nav"><button class="nb ghost" id="prev">◀ Anterior</button><div class="prog" id="prog"></div><button class="nb" id="next">Siguiente ▶</button></div>
+</div>
+<div class="modal" id="modal"><div class="mbox"><h3>Índice del libro <button class="chip" id="mclose" style="background:var(--navy)">Cerrar ✕</button></h3><div id="mlist"></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ══════════ PERSONAJES (SVG dibujados en código) ══════════ */
+const CHARS={
+ clara:{name:'Clara Montes',role:'Directora del proyecto',area:'Integración',skin:'#E9B896',hair:'#3B2417',hs:'bun',body:'#0A43C4',acc:'#FFC20E',glasses:1,tie:0,extra:'badge',
+   fn:'Es la voz de la gerencia: junta todas las piezas del proyecto, mantiene el plan integrado y decide cómo tramitar los cambios. Si algo se mueve, ella mide el efecto en todo lo demás.',
+   area2:'Integración · Calidad · Riesgos'},
+ vargas:{name:'Don Aurelio Vargas',role:'Patrocinador',area:'Gobierno del proyecto',skin:'#D9A381',hair:'#B8BEC9',hs:'sides',body:'#2A2F45',acc:'#FFC20E',glasses:1,tie:1,extra:'',
+   fn:'Autoriza el proyecto, pone los recursos y espera beneficios. Necesita información honesta y oportuna para decidir; si solo le cuentan «va en 70 %», no puede ayudar.',
+   area2:'Integración · Comunicaciones · Interesados'},
+ bruno:{name:'Bruno Salazar',role:'Proveedor tecnológico',area:'Adquisiciones',skin:'#C98D69',hair:'#1D1D1D',hs:'cap',body:'#F28C28',acc:'#FFFFFF',glasses:0,tie:0,extra:'vest',
+   fn:'Aporta los componentes comerciales y el trabajo contratado. Representa lo que pasa cuando el contrato, los criterios de aceptación y la integración no quedaron claros desde el principio.',
+   area2:'Adquisiciones · Riesgos · Calidad'},
+ lia:{name:'Lía Ortega',role:'Analista y usuaria final',area:'Interesados',skin:'#B67B5C',hair:'#1B1B2F',hs:'long',body:'#7B4DDB',acc:'#FFC20E',glasses:0,tie:0,extra:'',
+   fn:'Usa el sistema todos los días. Es quien confirma si la solución realmente sirve en el trabajo real. Su voz muestra por qué hay que involucrar a los usuarios desde el diseño.',
+   area2:'Interesados · Calidad (validación)'},
+ rojas:{name:'Inspector Rojas',role:'Auditor',area:'Evaluación y control',skin:'#E2B08C',hair:'#2B2B2B',hs:'short',body:'#3A3F4B',acc:'#FFC20E',glasses:0,tie:1,extra:'mag',
+   fn:'Pregunta siempre «¿cómo lo sabes?». Pide evidencia verificable del avance, los costos y los resultados. Representa las auditorías y la evaluación del proyecto.',
+   area2:'Evaluación · Calidad · Cierre'},
+ mateo:{name:'Mateo Quintero',role:'Product Owner',area:'Scrum',skin:'#D8A07C',hair:'#5A3A1E',hs:'curly',body:'#12A594',acc:'#FFFFFF',glasses:0,tie:0,extra:'badge',
+   fn:'Aparece cuando el proyecto cambia de rumbo. Ordena el Product Backlog y decide qué aporta más valor. No es un jefe que reparte tareas: conversa con usuarios e interesados.',
+   area2:'Scrum · Interesados · Alcance'},
+ sofia:{name:'Sofía Lemus',role:'Scrum Master',area:'Scrum',skin:'#F0C4A2',hair:'#B5432A',hs:'long',body:'#2E8B57',acc:'#FFC20E',glasses:1,tie:0,extra:'hood',
+   fn:'Ayuda al equipo a entender y aplicar Scrum y a quitar impedimentos. No es una secretaria que agenda reuniones: cuida que el equipo mejore su forma de trabajar.',
+   area2:'Scrum · Equipo · Comunicaciones'},
+ nico:{name:'Nico Paredes',role:'Developer (equipo de desarrollo)',area:'Ejecución',skin:'#C48B66',hair:'#222',hs:'short',body:'#E4572E',acc:'#FFFFFF',glasses:1,tie:0,extra:'laptop',
+   fn:'Construye, prueba e integra. En Scrum, el equipo decide cómo convertir lo priorizado en un Incremento usable que cumpla la Definition of Done.',
+   area2:'Equipo · Calidad · Scrum'},
+ dato:{name:'Dato, el búho',role:'Narrador y memoria del proyecto',area:'Lecciones aprendidas',owl:1,
+   fn:'Aparece al final de cada capítulo con una frase y una lección. Representa la memoria organizacional: lo que se documenta para no empezar de cero en el siguiente proyecto.',
+   area2:'Lecciones aprendidas · Gestión del conocimiento'}
+};
+
+function shade(hex,amt){const n=parseInt(hex.slice(1),16);let r=n>>16,g=(n>>8)&255,b=n&255;const f=v=>Math.max(0,Math.min(255,Math.round(v+amt)));return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join('');}
+
+function charSVG(id,mood,flip){
+  const c=CHARS[id];mood=mood||'happy';
+  if(c.owl)return owlSVG(mood,flip);
+  const sk=c.skin,skd=shade(sk,-22),hair=c.hair;
+  let h='';
+  h+=`<g class="body"><path d="M16 140 Q16 96 50 92 Q84 96 84 140 Z" fill="${c.body}"/>`;
+  if(c.hs!=='x'){h+=`<path d="M40 93 L50 112 L60 93" fill="${shade(c.body,40)}" opacity=".35"/>`;}
+  if(c.tie)h+=`<path d="M46 94 L54 94 L52 104 L56 124 L50 130 L44 124 L48 104 Z" fill="${c.acc}"/><path d="M42 92 L50 100 L58 92 L58 96 L50 104 L42 96Z" fill="#fff"/>`;
+  if(c.extra==='vest')h+=`<path d="M22 140 L28 100 L40 96 L38 140Z M78 140 L72 100 L60 96 L62 140Z" fill="#FFC20E" opacity=".95"/><rect x="26" y="116" width="14" height="4" fill="#fff" opacity=".85"/><rect x="60" y="116" width="14" height="4" fill="#fff" opacity=".85"/>`;
+  if(c.extra==='hood')h+=`<path d="M30 94 Q50 118 70 94 Q50 100 30 94Z" fill="${shade(c.body,-25)}"/><rect x="43" y="108" width="2" height="14" fill="#fff"/><rect x="55" y="108" width="2" height="14" fill="#fff"/>`;
+  if(c.extra==='badge')h+=`<rect x="60" y="110" width="14" height="10" rx="2" fill="#fff"/><rect x="62" y="113" width="10" height="2" fill="${c.body}"/>`;
+  h+=`</g>`;
+  h+=`<rect x="44" y="80" width="12" height="16" rx="5" fill="${skd}"/>`;
+  /* pelo atrás */
+  if(c.hs==='long')h+=`<path d="M26 58 Q22 96 34 106 L40 72 Z M74 58 Q78 96 66 106 L60 72 Z" fill="${hair}"/>`;
+  /* cabeza */
+  h+=`<circle cx="28.5" cy="64" r="4.5" fill="${sk}"/><circle cx="71.5" cy="64" r="4.5" fill="${sk}"/>`;
+  h+=`<ellipse cx="50" cy="62" rx="22" ry="25" fill="${sk}"/>`;
+  /* pelo frente */
+  if(c.hs==='short'||c.hs==='bun'||c.hs==='long')h+=`<path d="M27 58 Q26 34 50 34 Q74 34 73 58 Q66 46 50 46 Q34 46 27 58Z" fill="${hair}"/>`;
+  if(c.hs==='bun')h+=`<circle cx="50" cy="29" r="9" fill="${hair}"/>`;
+  if(c.hs==='sides')h+=`<path d="M27 62 Q25 46 34 42 L34 62 Z M73 62 Q75 46 66 42 L66 62Z" fill="${hair}"/><path d="M36 40 Q50 36 64 40" stroke="${hair}" stroke-width="3" fill="none"/>`;
+  if(c.hs==='curly')h+=[34,42,50,58,66].map((x,i)=>`<circle cx="${x}" cy="${i%2?36:39}" r="8" fill="${hair}"/>`).join('');
+  if(c.hs==='cap')h+=`<path d="M25 52 Q25 26 50 26 Q75 26 75 52Z" fill="#FFC20E"/><rect x="21" y="49" width="58" height="7" rx="3" fill="#E5A800"/><rect x="47" y="26" width="6" height="22" fill="#E5A800"/>`;
+  /* ojos */
+  const ey=60;
+  const eyes=(mood==='surprised')?`<ellipse class="eye" cx="40" cy="${ey}" rx="4" ry="5.2" fill="#fff" stroke="#0B1F55" stroke-width="1"/><ellipse class="eye" cx="60" cy="${ey}" rx="4" ry="5.2" fill="#fff" stroke="#0B1F55" stroke-width="1"/><circle cx="40" cy="${ey}" r="1.9" fill="#0B1F55"/><circle cx="60" cy="${ey}" r="1.9" fill="#0B1F55"/>`
+   :`<ellipse class="eye" cx="40" cy="${ey}" rx="3" ry="3.4" fill="#0B1F55"/><ellipse class="eye" cx="60" cy="${ey}" rx="3" ry="3.4" fill="#0B1F55"/><circle cx="41" cy="${ey-1.2}" r="1" fill="#fff"/><circle cx="61" cy="${ey-1.2}" r="1" fill="#fff"/>`;
+  h+=`<g class="eyes">${eyes}</g>`;
+  const br=mood==='worried'?`<path d="M34 50 L45 54 M66 50 L55 54" stroke="#0B1F55" stroke-width="2.4" stroke-linecap="round"/>`
+   :mood==='angry'?`<path d="M34 54 L45 50 M66 54 L55 50" stroke="#0B1F55" stroke-width="2.6" stroke-linecap="round"/>`
+   :mood==='surprised'?`<path d="M35 49 Q40 45 45 49 M55 49 Q60 45 65 49" stroke="#0B1F55" stroke-width="2" fill="none" stroke-linecap="round"/>`
+   :`<path d="M35 51 Q40 48.5 45 51 M55 51 Q60 48.5 65 51" stroke="#0B1F55" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/>`;
+  h+=br;
+  if(c.glasses)h+=`<g fill="none" stroke="#0B1F55" stroke-width="2"><circle cx="40" cy="${ey}" r="7.5"/><circle cx="60" cy="${ey}" r="7.5"/><path d="M47.5 ${ey} L52.5 ${ey}"/></g>`;
+  const mouths={happy:`<path d="M41 74 Q50 83 59 74" stroke="#0B1F55" stroke-width="2.4" fill="#fff" stroke-linejoin="round"/>`,
+    worried:`<path d="M42 78 Q50 72 58 78" stroke="#0B1F55" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    angry:`<path d="M43 77 L57 77" stroke="#0B1F55" stroke-width="2.6" stroke-linecap="round"/>`,
+    surprised:`<ellipse cx="50" cy="77" rx="4" ry="5" fill="#7A1F2B" stroke="#0B1F55" stroke-width="1.6"/>`,
+    think:`<path d="M43 76 Q50 77 57 74" stroke="#0B1F55" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    proud:`<path d="M40 73 Q50 86 60 73 Z" fill="#fff" stroke="#0B1F55" stroke-width="2.2" stroke-linejoin="round"/>`};
+  h+=mouths[mood]||mouths.happy;
+  if(mood==='happy'||mood==='proud')h+=`<circle cx="34" cy="70" r="3.4" fill="#FF8A7A" opacity=".45"/><circle cx="66" cy="70" r="3.4" fill="#FF8A7A" opacity=".45"/>`;
+  if(c.extra==='mag')h+=`<g class="prop"><circle cx="86" cy="112" r="11" fill="#CFE5FF" fill-opacity=".6" stroke="#0B1F55" stroke-width="3"/><path d="M78 120 L66 134" stroke="#0B1F55" stroke-width="4" stroke-linecap="round"/></g>`;
+  if(c.extra==='laptop')h+=`<g><rect x="26" y="112" width="48" height="26" rx="3" fill="#2B3350"/><rect x="29" y="115" width="42" height="20" rx="2" fill="#6FB1FF"/><path d="M34 125 L40 120 L46 127 L52 118 L64 130" stroke="#fff" stroke-width="2" fill="none"/></g>`;
+  if(mood==='worried')h+=`<path d="M78 48 Q82 54 78 58 Q74 54 78 48Z" fill="#7FC8FF" class="sweat"/>`;
+  return `<svg class="chr ${flip?'flip':''}" viewBox="0 0 100 140" aria-hidden="true">${h}</svg>`;
+}
+
+function owlSVG(mood,flip){
+  const h=`<g class="body"><ellipse cx="50" cy="96" rx="34" ry="40" fill="#8B5E3C"/><ellipse cx="50" cy="104" rx="22" ry="28" fill="#F3D9B1"/>
+   <path d="M16 90 Q6 110 20 128 Q22 106 24 94Z M84 90 Q94 110 80 128 Q78 106 76 94Z" fill="#6E4527"/>
+   <path d="M30 128 L26 138 M42 134 L40 140 M58 134 L60 140 M70 128 L74 138" stroke="#FFC20E" stroke-width="4" stroke-linecap="round"/></g>
+   <path d="M22 44 L30 22 L42 38Z M78 44 L70 22 L58 38Z" fill="#8B5E3C"/>
+   <ellipse cx="50" cy="56" rx="32" ry="28" fill="#8B5E3C"/>
+   <circle cx="36" cy="56" r="14" fill="#fff"/><circle cx="64" cy="56" r="14" fill="#fff"/>
+   <g class="eyes"><circle class="eye" cx="36" cy="57" r="6" fill="#0B1F55"/><circle class="eye" cx="64" cy="57" r="6" fill="#0B1F55"/></g>
+   <circle cx="38" cy="54" r="2" fill="#fff"/><circle cx="66" cy="54" r="2" fill="#fff"/>
+   <path d="M44 66 L50 76 L56 66Z" fill="#FFC20E" stroke="#C98F00" stroke-width="1.5" stroke-linejoin="round"/>
+   <g fill="none" stroke="#0B1F55" stroke-width="2.2"><circle cx="36" cy="56" r="15"/><circle cx="64" cy="56" r="15"/><path d="M51 56 L49 56"/></g>
+   <path d="M30 28 L70 28 L50 14Z" fill="#0A43C4"/><rect x="34" y="28" width="32" height="5" fill="#052570"/><path d="M70 28 L78 40" stroke="#FFC20E" stroke-width="2.4"/><circle cx="78" cy="42" r="3" fill="#FFC20E"/>`;
+  return `<svg class="chr ${flip?'flip':''}" viewBox="0 0 100 140" aria-hidden="true">${h}</svg>`;
+}
+
+/* ══════════ FONDOS MÓVILES (uno por tema) ══════════ */
+const THEMES={
+ cover:{mode:'blocks',  g:['#0B4AD3','#0A3FB8','#072C86']},
+ c1:{mode:'gears',     g:['#0B4AD3','#0A3FB8','#072C86']},
+ c2:{mode:'blueprint', g:['#0A6AA8','#0A4F8F','#073A6B']},
+ c3:{mode:'people',    g:['#4A3FD0','#3A32B0','#251F80']},
+ c4:{mode:'radar',     g:['#0B3B7A','#082C5E','#051C3D']},
+ c5:{mode:'network',   g:['#0B6AA6','#0A5287','#073A63']},
+ c6:{mode:'loop',      g:['#0B4AD3','#0A3FB8','#0A2F95']},
+ c7:{mode:'kanban',    g:['#1C46B8','#17389A','#0F2670']},
+ c8:{mode:'sunrise',   g:['#0B4AD3','#1B66D8','#F2A81D']}
+};
+const BG=(function(){
+  const cv=document.getElementById('bg'),cx=cv.getContext('2d');
+  let W,H,D=Math.min(devicePixelRatio||1,2),mode='blocks',items=[],T=0,fade=1,pending=null;
+  const slow=matchMedia('(prefers-reduced-motion: reduce)').matches?.3:1;
+  const R=(a,b)=>a+Math.random()*(b-a);
+  function size(){W=cv.width=innerWidth*D;H=cv.height=innerHeight*D;cv.style.width=innerWidth+'px';cv.style.height=innerHeight+'px';init();}
+  function n(base){return Math.max(6,Math.round(base*Math.min(1,(innerWidth*innerHeight)/900000+.35)));}
+  function init(){
+    items=[];
+    if(mode==='blocks'){const C=[[255,194,14,.8],[255,194,14,.5],[5,37,112,.5],[90,162,255,.4],[150,196,255,.3],[47,123,255,.45]];
+      for(let i=0;i<n(16);i++){const s=R(70,200)*D;items.push({x:R(0,W),y:R(0,H+s),w:s*R(.5,1),h:s*R(1,1.8),sk:R(-.3,.3),vy:-R(.2,.55)*D,vx:R(-.15,.15)*D,r:R(-.4,.4),vr:R(-.0015,.0015),c:C[i%C.length],ph:R(0,6)});}}
+    if(mode==='gears'){for(let i=0;i<n(11);i++){const r=R(40,130)*D;items.push({x:R(0,W),y:R(0,H),r,t:Math.round(r/(11*D))+5,a:R(0,6),va:R(.002,.007)*(i%2?1:-1),vx:R(-.12,.12)*D,vy:R(-.1,.1)*D,c:i%3===0?[255,194,14,.55]:[140,185,255,.28]});}}
+    if(mode==='blueprint'){for(let i=0;i<n(14);i++)items.push({x:R(0,W),y:R(0,H),s:R(22,60)*D,vy:-R(.25,.7)*D,vx:R(-.1,.1)*D,a:R(.18,.5),k:i%3,ph:R(0,6)});}
+    if(mode==='people'){for(let i=0;i<n(26);i++)items.push({x:R(0,W),y:R(0,H),vx:R(-.3,.3)*D,vy:R(-.3,.3)*D,r:R(10,22)*D,y2:i%4===0,ph:R(0,6)});
+      for(let i=0;i<n(8);i++)items.push({b:1,x:R(0,W),y:H+R(0,H),vy:-R(.4,.9)*D,w:R(70,140)*D,ph:R(0,6)});}
+    if(mode==='radar'){for(let i=0;i<n(16);i++)items.push({a:R(0,6.28),d:R(.12,1),life:R(0,1),warn:i%4===0,sp:R(.004,.01)});
+      for(let i=0;i<n(7);i++)items.push({w:1,x:R(0,W),y:R(0,H),vy:-R(.2,.5)*D,s:R(26,50)*D,ph:R(0,6)});}
+    if(mode==='network'){for(let i=0;i<n(36);i++)items.push({x:R(0,W),y:R(0,H),vx:R(-.3,.3)*D,vy:R(-.3,.3)*D,r:R(3,9)*D*(i%7===0?2.2:1),ph:R(0,6)});}
+    if(mode==='loop'){for(let i=0;i<n(8);i++)items.push({x:R(0,W),y:R(0,H),r:R(70,170)*D,a:R(0,6),va:R(.003,.008)*(i%2?1:-1),vx:R(-.12,.12)*D,vy:R(-.1,.1)*D,w:R(.5,1)});}
+    if(mode==='kanban'){const L=4;for(let i=0;i<n(24);i++){const lane=i%L;items.push({lane,x:R(0,W),w:R(90,170)*D,h:R(34,56)*D,v:R(.25,.7)*D*(lane%2?1:-1)*(1),c:[[255,194,14,.7],[255,255,255,.45],[125,180,255,.5],[255,140,100,.5]][i%4],ph:R(0,6)});}}
+    if(mode==='sunrise'){for(let i=0;i<n(22);i++)items.push({x:R(0,W),y:H+R(0,H),vy:-R(.4,1.1)*D,s:R(10,26)*D,rot:R(0,6),vr:R(-.02,.02),c:i%3,ph:R(0,6)});}
+  }
+  function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
+  function draw(){
+    cx.clearRect(0,0,W,H);T++;
+    const m=mode;
+    if(m==='blocks'){items.forEach((b,i)=>{b.x+=b.vx*slow;b.y+=b.vy*slow;b.r+=b.vr*slow;if(b.y<-b.h*1.6){Object.assign(b,{y:H+b.h,x:R(0,W)});}
+      const w=b.w/2,h=b.h/2,k=b.sk*b.h/2;cx.save();cx.translate(b.x,b.y);cx.rotate(b.r);cx.fillStyle=`rgba(${b.c[0]},${b.c[1]},${b.c[2]},${b.c[3]})`;
+      cx.beginPath();cx.moveTo(-w+k,-h);cx.lineTo(w+k,-h);cx.lineTo(w-k,h);cx.lineTo(-w-k,h);cx.closePath();cx.fill();cx.restore();});}
+    if(m==='gears'){items.forEach(g=>{g.a+=g.va*slow;g.x+=g.vx*slow;g.y+=g.vy*slow;if(g.x<-g.r*2)g.x=W+g.r;if(g.x>W+g.r*2)g.x=-g.r;if(g.y<-g.r*2)g.y=H+g.r;if(g.y>H+g.r*2)g.y=-g.r;
+      cx.save();cx.translate(g.x,g.y);cx.rotate(g.a);cx.fillStyle=`rgba(${g.c[0]},${g.c[1]},${g.c[2]},${g.c[3]})`;cx.beginPath();
+      const N=g.t*2;for(let i=0;i<N;i++){const a0=i/N*6.2832,a1=(i+1)/N*6.2832,rr_=i%2?g.r*.82:g.r;cx.lineTo(Math.cos(a0)*rr_,Math.sin(a0)*rr_);cx.lineTo(Math.cos((a0+a1)/2)*rr_,Math.sin((a0+a1)/2)*rr_);}
+      cx.closePath();cx.arc(0,0,g.r*.38,0,6.2832,true);cx.fill('evenodd');cx.restore();});}
+    if(m==='blueprint'){cx.strokeStyle='rgba(255,255,255,.07)';cx.lineWidth=D;const gs=64*D,o=(T*.25*D*slow)%gs;
+      for(let x=-gs+o;x<W+gs;x+=gs){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}for(let y=-gs+o;y<H+gs;y+=gs){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();}
+      items.forEach(it=>{it.x+=it.vx*slow;it.y+=it.vy*slow;if(it.y<-80*D){it.y=H+60*D;it.x=R(0,W);}
+        cx.save();cx.translate(it.x,it.y);cx.globalAlpha=it.a*(.7+.3*Math.sin(T/40+it.ph));
+        if(it.k===0){cx.strokeStyle='#FFC20E';cx.lineWidth=7*D;cx.lineCap='round';cx.lineJoin='round';cx.beginPath();cx.moveTo(-it.s/2,0);cx.lineTo(-it.s/6,it.s/3);cx.lineTo(it.s/2,-it.s/3);cx.stroke();}
+        else if(it.k===1){cx.strokeStyle='#fff';cx.lineWidth=2*D;rr(-it.s*.4,-it.s*.5,it.s*.8,it.s,4*D);cx.stroke();cx.beginPath();for(let l=0;l<3;l++){cx.moveTo(-it.s*.25,-it.s*.22+l*it.s*.22);cx.lineTo(it.s*.25,-it.s*.22+l*it.s*.22);}cx.stroke();}
+        else{cx.strokeStyle='rgba(255,255,255,.9)';cx.lineWidth=2*D;cx.beginPath();cx.moveTo(-it.s,0);cx.lineTo(it.s,0);for(let l=-5;l<=5;l++){cx.moveTo(l*it.s/5,0);cx.lineTo(l*it.s/5,l%5===0?10*D:5*D);}cx.stroke();}
+        cx.restore();});}
+    if(m==='people'){for(let i=0;i<items.length;i++){const p=items[i];if(p.b)continue;p.x+=p.vx*slow;p.y+=p.vy*slow;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+        for(let j=i+1;j<items.length;j++){const q=items[j];if(q.b)continue;const d=Math.hypot(p.x-q.x,p.y-q.y);if(d<190*D){cx.strokeStyle=`rgba(255,255,255,${(1-d/(190*D))*.22})`;cx.lineWidth=D;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke();}}}
+      items.forEach(p=>{if(p.b){p.y+=p.vy*slow;p.x+=Math.sin(T/70+p.ph)*.4*D;if(p.y<-60*D){p.y=H+60*D;p.x=R(0,W);}cx.fillStyle='rgba(255,255,255,.16)';rr(p.x,p.y,p.w,p.w*.42,14*D);cx.fill();cx.beginPath();cx.moveTo(p.x+p.w*.2,p.y+p.w*.42);cx.lineTo(p.x+p.w*.14,p.y+p.w*.56);cx.lineTo(p.x+p.w*.38,p.y+p.w*.42);cx.fill();
+          cx.fillStyle='rgba(255,194,14,.55)';for(let d=0;d<3;d++){cx.beginPath();cx.arc(p.x+p.w*(.3+d*.2),p.y+p.w*.21,4*D,0,6.3);cx.fill();}return;}
+        cx.fillStyle=p.y2?'rgba(255,194,14,.7)':'rgba(255,255,255,.32)';cx.beginPath();cx.arc(p.x,p.y-p.r*.55,p.r*.45,0,6.3);cx.fill();cx.beginPath();cx.arc(p.x,p.y+p.r*.55,p.r*.8,Math.PI,0);cx.fill();});}
+    if(m==='radar'){const ox=W*.5,oy=H*.55,mx=Math.hypot(W,H)*.5;cx.strokeStyle='rgba(120,200,255,.18)';cx.lineWidth=D*1.4;for(let r=1;r<=6;r++){cx.beginPath();cx.arc(ox,oy,mx*r/6,0,6.3);cx.stroke();}
+      cx.beginPath();cx.moveTo(ox-mx,oy);cx.lineTo(ox+mx,oy);cx.moveTo(ox,oy-mx);cx.lineTo(ox,oy+mx);cx.stroke();
+      const sw=T*.012*slow;const g=cx.createConicGradient?cx.createConicGradient(sw-1.1,ox,oy):null;if(g){g.addColorStop(0,'rgba(90,220,255,0)');g.addColorStop(.17,'rgba(90,220,255,.32)');g.addColorStop(.1801,'rgba(90,220,255,0)');g.addColorStop(1,'rgba(90,220,255,0)');cx.fillStyle=g;cx.beginPath();cx.arc(ox,oy,mx,0,6.3);cx.fill();}
+      items.forEach(it=>{if(it.w){it.y+=it.vy*slow;if(it.y<-60*D){it.y=H+40*D;it.x=R(0,W);}cx.fillStyle='rgba(255,194,14,.5)';cx.beginPath();cx.moveTo(it.x,it.y-it.s*.6);cx.lineTo(it.x+it.s*.6,it.y+it.s*.45);cx.lineTo(it.x-it.s*.6,it.y+it.s*.45);cx.closePath();cx.fill();cx.fillStyle='#0B3B7A';cx.fillRect(it.x-1.5*D,it.y-it.s*.15,3*D,it.s*.35);cx.fillRect(it.x-1.5*D,it.y+it.s*.28,3*D,3*D);return;}
+        it.life+=it.sp*slow;if(it.life>1){it.life=0;it.a=R(0,6.28);it.d=R(.12,1);}const al=Math.sin(it.life*3.14);const x=ox+Math.cos(it.a)*it.d*mx,y=oy+Math.sin(it.a)*it.d*mx;
+        cx.fillStyle=it.warn?`rgba(255,120,90,${al*.9})`:`rgba(120,230,255,${al*.8})`;cx.beginPath();cx.arc(x,y,(it.warn?9:6)*D,0,6.3);cx.fill();cx.strokeStyle=it.warn?`rgba(255,120,90,${al*.5})`:`rgba(120,230,255,${al*.4})`;cx.beginPath();cx.arc(x,y,(12+al*14)*D,0,6.3);cx.stroke();});}
+    if(m==='network'){for(let i=0;i<items.length;i++){const p=items[i];p.x+=p.vx*slow;p.y+=p.vy*slow;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+        for(let j=i+1;j<items.length;j++){const q=items[j],d=Math.hypot(p.x-q.x,p.y-q.y);if(d<200*D){cx.strokeStyle=`rgba(255,255,255,${(1-d/(200*D))*.26})`;cx.lineWidth=D;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke();}}}
+      items.forEach(p=>{const b=.6+.4*Math.sin(T/30+p.ph);const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4);g.addColorStop(0,`rgba(255,194,14,${.6*b})`);g.addColorStop(1,'rgba(255,194,14,0)');cx.fillStyle=g;cx.beginPath();cx.arc(p.x,p.y,p.r*4,0,6.3);cx.fill();cx.fillStyle=`rgba(255,235,170,${.85*b})`;cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.3);cx.fill();});}
+    if(m==='loop'){items.forEach(l=>{l.a+=l.va*slow;l.x+=l.vx*slow;l.y+=l.vy*slow;if(l.x<-l.r*2)l.x=W+l.r;if(l.x>W+l.r*2)l.x=-l.r;if(l.y<-l.r*2)l.y=H+l.r;if(l.y>H+l.r*2)l.y=-l.r;
+      cx.save();cx.translate(l.x,l.y);cx.rotate(l.a);cx.lineWidth=14*D*l.w;cx.lineCap='round';cx.strokeStyle='rgba(255,194,14,.5)';cx.beginPath();cx.arc(0,0,l.r,0,4.4);cx.stroke();
+      cx.strokeStyle='rgba(160,200,255,.3)';cx.beginPath();cx.arc(0,0,l.r,4.8,6.0);cx.stroke();cx.fillStyle='rgba(255,194,14,.65)';const ax=Math.cos(4.4)*l.r,ay=Math.sin(4.4)*l.r;cx.beginPath();cx.moveTo(ax+Math.cos(4.4+1.57)*22*D,ay+Math.sin(4.4+1.57)*22*D);cx.lineTo(ax+Math.cos(4.4+.35)*30*D,ay+Math.sin(4.4+.35)*30*D);cx.lineTo(ax+Math.cos(4.4-1.57)*22*D,ay+Math.sin(4.4-1.57)*22*D);cx.closePath();cx.fill();cx.restore();});}
+    if(m==='kanban'){const L=4,lh=H/L;cx.fillStyle='rgba(255,255,255,.05)';for(let i=0;i<L;i+=2)cx.fillRect(0,i*lh,W,lh);
+      items.forEach(c=>{c.x+=c.v*slow;if(c.v>0&&c.x>W+20)c.x=-c.w;if(c.v<0&&c.x<-c.w-20)c.x=W+20;const y=c.lane*lh+lh/2-c.h/2+Math.sin(T/50+c.ph)*6*D;cx.fillStyle=`rgba(${c.c[0]},${c.c[1]},${c.c[2]},${c.c[3]})`;rr(c.x,y,c.w,c.h,8*D);cx.fill();cx.fillStyle='rgba(5,37,112,.35)';cx.fillRect(c.x+10*D,y+c.h*.3,c.w*.6,4*D);cx.fillRect(c.x+10*D,y+c.h*.58,c.w*.4,4*D);});}
+    if(m==='sunrise'){const ox=W*.5,oy=H*(1.05-.0004*Math.min(T,400)*0),r=Math.max(W,H)*.9;const sy=H*.92-Math.min(T*.35*D*slow,H*.3);
+      cx.save();cx.translate(ox,sy);cx.rotate(T*.0016*slow);cx.fillStyle='rgba(255,226,120,.13)';for(let i=0;i<14;i++){cx.rotate(6.2832/14);cx.beginPath();cx.moveTo(0,0);cx.lineTo(r,-r*.07);cx.lineTo(r,r*.07);cx.closePath();cx.fill();}cx.restore();
+      const g=cx.createRadialGradient(ox,sy,0,ox,sy,Math.min(W,H)*.28);g.addColorStop(0,'rgba(255,235,150,.95)');g.addColorStop(.35,'rgba(255,194,14,.75)');g.addColorStop(1,'rgba(255,194,14,0)');cx.fillStyle=g;cx.beginPath();cx.arc(ox,sy,Math.min(W,H)*.28,0,6.3);cx.fill();
+      items.forEach(p=>{p.y+=p.vy*slow;p.rot+=p.vr*slow;p.x+=Math.sin(T/60+p.ph)*.6*D;if(p.y<-40*D){p.y=H+30*D;p.x=R(0,W);}cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);
+        cx.fillStyle=['rgba(255,194,14,.85)','rgba(255,255,255,.7)','rgba(120,190,255,.8)'][p.c];if(p.c===0){cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);}else if(p.c===1){cx.beginPath();cx.moveTo(0,-p.s/2);cx.lineTo(p.s*.45,p.s/2);cx.lineTo(-p.s*.45,p.s/2);cx.closePath();cx.fill();}else{cx.beginPath();cx.arc(0,0,p.s/2.5,0,6.3);cx.fill();}
+        if(p.c===0)cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore();});}
+    requestAnimationFrame(draw);
+  }
+  function set(key){
+    const th=THEMES[key]||THEMES.cover;
+    document.body.style.setProperty('--g1',th.g[0]);document.body.style.setProperty('--g2',th.g[1]);document.body.style.setProperty('--g3',th.g[2]);
+    if(th.mode!==mode){cv.style.opacity=0;setTimeout(()=>{mode=th.mode;T=0;init();cv.style.opacity=1;},350);}
+  }
+  addEventListener('resize',size);size();draw();
+  return {set};
+})();
+
+/* ══════════ LA HISTORIA ══════════
+   Hechos reales: tomados del caso «Sentinel» de la unidad (informes del Inspector General, 2007 y 2012).
+   Personajes y diálogos: ficticios, con fines didácticos. */
+const BOOK={
+  title:'SENTINEL',
+  sub:'La historia real de un proyecto que tuvo que cambiar de rumbo',
+  tag:'Libro interactivo · Gerencia de Proyectos',
+  docente:'William Parra Forero'
+};
+
+const CH=[
+/* ───────────────────────── 1 · INTEGRACIÓN ───────────────────────── */
+{n:1,theme:'c1',ic:'🧩',year:'2006',title:'El gran plan',area:'Integración',
+ goal:'Entender cómo se coordinan todas las piezas de un proyecto en un sistema coherente.',
+ comic:[
+  [ {bg:'office',cap:'2006 · El FBI inicia Sentinel: modernizar su sistema de gestión de casos e investigaciones, en varias fases.',chars:[['vargas',24,'proud'],['clara',70,'happy',1]],says:[['vargas','Clara, necesito que todas las piezas encajen. El proyecto es tuyo.']],props:[['🏛️',50,6,40]]},
+    {bg:'office',chars:[['clara',30,'think'],['nico',74,'happy',1]],says:[['clara','Primero, el acta de constitución y un plan que integre alcance, tiempo, costo, calidad y equipo.']],props:[['📜',54,8,36]],sfx:'¡MANOS A LA OBRA!'},
+    {bg:'warm',chars:[['bruno',26,'happy'],['clara',72,'worried',1]],says:[['bruno','La fase 1 la entregamos en la fecha que ustedes marcaron.'],['clara','¿La fecha la estimamos... o nos la impusieron?']],props:[['📅',52,8,38]]},
+    {bg:'night',cap:'Cada decisión mueve otras piezas: contratos, personas, costos y expectativas.',chars:[['dato',50,'happy']],says:[['dato','Integrar no es centralizar: es coordinar con reglas claras.']],props:[['⚙️',16,10,34],['⚙️',84,14,26]],sfx:'¡CLIC!'} ],
+  [ {bg:'office',cap:'Pocas semanas después...',chars:[['lia',26,'happy'],['clara',72,'think',1]],says:[['lia','¿Podemos agregar una función nueva para los analistas? Es pequeña.']],props:[['✨',52,10,30]]},
+    {bg:'alert',chars:[['clara',28,'think'],['vargas',74,'worried',1]],says:[['clara','Pequeña o grande, un cambio se evalúa: impacto en alcance, cronograma, costo, calidad y riesgos.']],props:[['🔎',52,10,34]]},
+    {bg:'office',chars:[['vargas',26,'happy'],['clara',72,'proud',1]],says:[['vargas','Con ese análisis sí puedo decidir.'],['clara','Y luego actualizamos documentos y lo comunicamos a todos.']],props:[['✅',50,8,34]]},
+    {bg:'warm',chars:[['dato',50,'happy']],says:[['dato','Control de cambios: analizar, aprobar, actualizar y comunicar. En ese orden.']],props:[['🔄',18,12,32],['🔄',82,12,32]],sfx:'¡ORDEN!'} ]
+ ],
+ concept:{title:'Archivo del proyecto · Integración',
+  cards:[{ic:'📜',t:'Acta de constitución',d:'Autoriza el proyecto y define su propósito, objetivos, patrocinador y principales restricciones.'},
+         {ic:'🗺️',t:'Plan integrado',d:'Une alcance, cronograma, presupuesto, calidad, recursos, comunicaciones, riesgos y adquisiciones.'},
+         {ic:'🔄',t:'Control de cambios',d:'Cada solicitud pasa por análisis de impacto, aprobación, actualización documental y comunicación.'},
+         {ic:'🏁',t:'Cierre formal',d:'Confirma entregables y asegura la transferencia de los resultados.'}],
+  key:['Idea clave','Las áreas de conocimiento no son compartimentos aislados: son lentes complementarios. Una decisión en una de ellas afecta a las demás.'],
+  warn:['Error frecuente','Confundir integración con centralización absoluta. Coordinar es fijar reglas, responsables y escalamiento, no decidirlo todo en una sola persona.'],
+  quote:'Coordinar no significa que todas las decisiones pasen por una sola persona.'},
+ ex:[
+  {t:'mcq',q:'Llega una solicitud de cambio de un área usuaria. Como directora, ¿qué haces primero?',
+   opts:[['Aprobarla si el patrocinador está de acuerdo y avisar luego al equipo, para no frenar el trabajo.',0],['Analizar su impacto en todas las áreas antes de decidir.',1],['Rechazarla: lo que no está en el plan original no se discute y así se protege la línea base.',0],['Pasársela al proveedor para que la incluya sin tocar el contrato ni el cronograma.',0]],
+   why:'El control integrado de cambios empieza por entender el impacto en todas las dimensiones. Aprobar o rechazar sin analizar rompe la coherencia del plan.'},
+  {t:'order',q:'Ordena la ruta de un cambio solicitado.',
+   items:['Registrar la solicitud','Analizar su impacto','Aprobarla o rechazarla por la autoridad definida','Actualizar documentos y líneas base','Comunicar la decisión'],
+   why:'Primero se entiende y se mide; después se decide; al final se actualiza y se comunica para que todos trabajen con la misma información.'}
+ ]},
+
+/* ───────────────────────── 2 · CALIDAD ───────────────────────── */
+{n:2,theme:'c2',ic:'✅',year:'2007',title:'¿Terminado de verdad?',area:'Calidad',
+ goal:'Distinguir planificar, asegurar y controlar la calidad, y verificar de validar.',
+ comic:[
+  [ {bg:'office',cap:'2007 · El Inspector General del Departamento de Justicia audita Sentinel.',chars:[['rojas',26,'think'],['clara',72,'worried',1]],says:[['rojas','La fase 1 llegó unos dos meses tarde, costó más de lo esperado y entregó menos funciones de las planeadas.']],props:[['📋',52,8,34]]},
+    {bg:'alert',chars:[['clara',28,'worried'],['rojas',74,'angry',1]],says:[['clara','Pero nuestro tablero decía 90 % de avance...'],['rojas','¿90 % de qué? ¿Qué está probado y aceptado?']],props:[['📊',52,8,34]],sfx:'¡HMM!'},
+    {bg:'purple',chars:[['lia',26,'worried'],['nico',72,'surprised',1]],says:[['lia','Cumple la lista de requisitos, pero así no me sirve para mis casos.']],props:[['🧪',52,10,32]]},
+    {bg:'warm',chars:[['dato',50,'happy']],says:[['dato','Verificar: ¿cumple los requisitos? Validar: ¿resuelve la necesidad? Hacen falta ambas.']],props:[['✔️',18,12,30],['🎯',82,12,30]],sfx:'¡CLARO!'} ]
+ ],
+ concept:{title:'Archivo del proyecto · Calidad',
+  cards:[{ic:'🗒️',t:'Planificar la calidad',d:'¿Qué significa calidad aquí? Criterios de aceptación, estándares, indicadores y plan de pruebas.'},
+         {ic:'🔧',t:'Asegurar la calidad',d:'¿Los procesos producen resultados consistentes? Auditorías, listas de verificación y mejora.'},
+         {ic:'🔬',t:'Controlar la calidad',d:'¿El entregable cumple lo acordado? Pruebas, inspección, mediciones y registro de defectos.'},
+         {ic:'🛠️',t:'Herramientas',d:'Listas de chequeo, causa-efecto, Pareto, histogramas, pruebas piloto, revisiones entre pares y ciclo PHVA.'}],
+  key:['Distinción importante','Verificar responde «¿cumple los requisitos?». Validar responde «¿resuelve la necesidad y sirve a quienes lo usarán?».'],
+  warn:['Cuidado','Calidad no es lujo ni perfección: es adecuación al uso previsto, con evidencia.'],
+  quote:'Un porcentaje de avance sin evidencia es solo una opinión.'},
+ ex:[
+  {t:'buckets',q:'Clasifica cada acción: ¿verificación o validación?',
+   cols:['✔ Verificar (¿cumple requisitos?)','🎯 Validar (¿sirve de verdad?)'],
+   cards:[['Revisar el entregable contra la lista de criterios de aceptación',0],['Probar la función con analistas reales en su trabajo diario',1],['Comprobar que cada campo coincide con la especificación',0],['Hacer un piloto con usuarios antes del despliegue general',1],['Preguntar a quienes lo usarán si resuelve su necesidad',1],['Inspeccionar el resultado con una lista de chequeo',0]],
+   why:'Verificar compara el producto con lo especificado; validar comprueba que resuelve la necesidad real de quienes lo usan. Ambas perspectivas son necesarias.'},
+  {t:'mcq',q:'El tablero marca 90 % de avance. ¿Qué evidencia hace creíble ese número?',
+   opts:[['Entregables aceptados y probados contra criterios definidos, con defectos registrados.',1],['La firma del responsable de cada actividad, junto con el informe semanal de horas.',0],['Que el porcentaje no haya bajado de una semana a otra, aunque no existan pruebas formales.',0],['Las horas trabajadas acumuladas frente a las horas estimadas por el equipo.',0]],
+   why:'El avance debe apoyarse en entregables verificables, pruebas y evidencia objetiva. Horas o firmas miden actividad, no valor terminado.'}
+ ]},
+
+/* ───────────────────────── 3 · EQUIPO Y COMUNICACIONES ───────────────────────── */
+{n:3,theme:'c3',ic:'👥',year:'2007',title:'Gente y mensajes',area:'Equipo y comunicaciones',
+ goal:'Definir roles y disponibilidad del equipo, y comunicar según cada audiencia.',
+ comic:[
+  [ {bg:'purple',cap:'La auditoría también señaló demoras al contratar personal con experiencia.',chars:[['clara',26,'worried'],['bruno',72,'think',1]],says:[['clara','Nos faltan manos con experiencia en integración.'],['bruno','Mi gente más hábil está en otro frente esta semana.']],props:[['⏳',52,10,34]]},
+    {bg:'office',chars:[['clara',28,'think'],['nico',74,'happy',1]],says:[['clara','Definamos quién ejecuta, quién aprueba, quién asesora y quién debe enterarse: una matriz RACI.']],props:[['🧾',52,8,34]],sfx:'¡ROLES CLAROS!'},
+    {bg:'alert',chars:[['vargas',26,'worried'],['clara',72,'surprised',1]],says:[['vargas','Dime en una línea cómo vamos.'],['clara','Hay un 70 %.'],['vargas','¿70 % de qué... y qué debo decidir hoy?']],props:[['❓',52,6,38]]},
+    {bg:'warm',chars:[['clara',30,'proud'],['dato',74,'happy',1]],says:[['clara','Cada audiencia, su mensaje: patrocinador, equipo, usuarios y proveedor.']],props:[['💬',54,8,34]],sfx:'¡PLAN!'} ]
+ ],
+ concept:{title:'Archivo del proyecto · Equipo y comunicaciones',
+  cards:[{ic:'🧑‍🤝‍🧑',t:'Equipo',d:'Roles, capacidades, disponibilidad real y condiciones para colaborar. No es una lista de nombres.'},
+         {ic:'🧾',t:'Matriz RACI',d:'Responsable, Aprobador, Consultado e Informado: evita que todos o nadie decidan.'},
+         {ic:'📣',t:'Plan de comunicaciones',d:'Qué, a quién, quién lo prepara, frecuencia, canal, formato y retroalimentación.'},
+         {ic:'📊',t:'Avance útil',d:'Un «70 %» aporta poco: hay que decir qué se completó, qué falta, qué riesgo existe y qué decisión se requiere.'}],
+  key:['Buena práctica','Un equipo es un conjunto de personas con objetivos compartidos, capacidades complementarias y responsabilidades explícitas.'],
+  warn:['Alerta','La sobrecomunicación también es un problema: reuniones y mensajes sin propósito le quitan tiempo al trabajo.'],
+  quote:'Comunicar es facilitar la acción, no solo transmitir actividad.'},
+ ex:[
+  {t:'match',q:'Relaciona cada audiencia con la información y el canal más útil.',
+   pairs:[['Patrocinador','Informe ejecutivo mensual y alertas inmediatas'],['Equipo','Reunión breve y tablero compartido'],['Usuarios','Boletín, sesiones demostrativas y preguntas frecuentes'],['Proveedor','Reuniones de seguimiento y actas de acuerdos']],
+   why:'Cada audiencia necesita un nivel de detalle, un canal y una frecuencia distintos. Un mismo mensaje para todos casi nunca funciona.'},
+  {t:'mcq',q:'Dos personas creen ser las dueñas de aprobar el diseño, y nadie revisó las pruebas. ¿Qué herramienta ayuda más?',
+   opts:[['Convocar una reunión diaria de una hora con todo el equipo hasta que se aclare quién aprueba.',0],['Una matriz RACI que fije quién ejecuta, aprueba, asesora y es informado.',1],['Un informe semanal con las horas trabajadas por cada persona, firmado por el líder.',0],['Subir el presupuesto de capacitación para que el equipo conozca mejor sus funciones.',0]],
+   why:'El problema es de responsabilidades poco claras. La matriz RACI las hace explícitas; más reuniones o más horas reportadas no lo resuelven.'}
+ ]},
+
+/* ───────────────────────── 4 · RIESGOS Y ADQUISICIONES ───────────────────────── */
+{n:4,theme:'c4',ic:'⚠️',year:'2007',title:'Terreno minado',area:'Riesgos y adquisiciones',
+ goal:'Describir un riesgo (causa-evento-efecto), elegir respuestas y contratar con criterios claros.',
+ comic:[
+  [ {bg:'night',cap:'El plan incluía componentes comerciales. Integrarlos fue más difícil de lo previsto.',chars:[['nico',26,'surprised'],['bruno',72,'worried',1]],says:[['nico','Esto no se habla con aquello...']],props:[['🔌',52,10,34]],sfx:'¡ZZZT!'},
+    {bg:'alert',chars:[['clara',28,'think'],['nico',74,'think',1]],says:[['clara','Riesgo: sistemas con estructuras distintas → falla de sincronización → registros duplicados y retraso.']],props:[['⚠️',52,8,38]]},
+    {bg:'office',chars:[['clara',28,'proud'],['nico',74,'happy',1]],says:[['clara','Respuesta: prueba de interoperabilidad temprana, ambiente de ensayo y un responsable técnico.']],props:[['🧪',52,8,34]]},
+    {bg:'warm',chars:[['clara',28,'think'],['bruno',74,'surprised',1]],says:[['clara','Criterios de aceptación antes de firmar. Y miremos el costo total, no solo el precio.'],['bruno','¿Y el soporte?']],props:[['📝',52,8,34]],sfx:'¡CONTRATO!'} ]
+ ],
+ concept:{title:'Archivo del proyecto · Riesgos y adquisiciones',
+  cards:[{ic:'🎲',t:'¿Qué es un riesgo?',d:'Un evento o condición incierta que, si ocurre, afecta objetivos. Puede ser amenaza u oportunidad.'},
+         {ic:'🛡️',t:'Respuestas a amenazas',d:'Evitar, mitigar, transferir/compartir o aceptar. Cada riesgo con responsable, fecha de revisión y señal de alerta.'},
+         {ic:'🤝',t:'Adquisiciones',d:'Decidir hacer o comprar, definir requisitos, seleccionar proveedor, formalizar, supervisar y cerrar.'},
+         {ic:'📑',t:'Criterios de selección',d:'Técnico, económico (costo total), experiencia, legal y seguridad, operación y soporte.'}],
+  key:['Indicador de madurez','Un registro de riesgos útil cambia con el proyecto. Si nunca se actualiza, es un documento de cumplimiento y no una herramienta de decisión.'],
+  warn:['Recomendación','Definir criterios de aceptación antes de contratar. Se recibe con evidencia, no con la afirmación del proveedor.'],
+  quote:'Gestionar riesgos no es predecir el futuro: es prepararse para responder.'},
+ ex:[
+  {t:'match',q:'Relaciona la estrategia frente a amenazas con su ejemplo.',
+   pairs:[['Evitar','Cambiar una tecnología inmadura por una solución probada'],['Mitigar','Realizar pruebas tempranas y capacitación'],['Transferir','Póliza, garantía o contrato con niveles de servicio'],['Aceptar','Reserva de contingencia y plan de respuesta']],
+   why:'Evitar elimina la amenaza; mitigar reduce probabilidad o impacto; transferir asigna parte del impacto a un tercero (sin eliminar toda la responsabilidad); aceptar reconoce el riesgo y prepara una respuesta.'},
+  {t:'mcq',q:'El contrato con el proveedor solo especifica la licencia. ¿Qué es lo más probable que falte?',
+   opts:[['Más mensajes de seguimiento semanales entre el proveedor y el equipo del proyecto.',0],['Una cláusula que fije la fecha y la sala de la reunión final de cierre del contrato.',0],['Migración, capacitación, soporte y niveles de servicio.',1],['Otro proveedor de respaldo para cada uno de los componentes comerciales del sistema.',0]],
+   why:'Si el contrato no incluye migración, formación, soporte, niveles de servicio y portabilidad de datos, la organización puede acabar con una herramienta que no se adopta o que genera dependencia.'}
+ ]},
+
+/* ───────────────────────── 5 · INTERESADOS ───────────────────────── */
+{n:5,theme:'c5',ic:'🧭',year:'2007',title:'Las voces que faltaban',area:'Interesados',
+ goal:'Identificar a los interesados y diseñar estrategias de participación.',
+ comic:[
+  [ {bg:'purple',cap:'Detrás de cada función hay personas que usarán el sistema todos los días.',chars:[['lia',28,'worried'],['clara',74,'surprised',1]],says:[['lia','Nadie me preguntó cómo trabajo en realidad.']],props:[['🗣️',52,10,34]]},
+    {bg:'office',chars:[['clara',28,'think'],['dato',74,'happy',1]],says:[['clara','Hagamos una matriz poder-interés: ¿quién influye y a quién le importa?']],props:[['🧭',52,8,38]],sfx:'¡MAPA!'},
+    {bg:'warm',chars:[['vargas',26,'happy'],['lia',72,'happy',1]],says:[['vargas','Yo, alto poder: me gestionan de cerca.'],['lia','Yo, alto interés: involúcrenme en diseño y pruebas.']],props:[['🤝',52,8,34]]},
+    {bg:'night',chars:[['dato',50,'think']],says:[['dato','¿Quién podría bloquear, mejorar o verse afectado, y todavía no ha sido escuchado?']],props:[['❓',16,10,32],['❓',84,10,32]]} ]
+ ],
+ concept:{title:'Archivo del proyecto · Interesados',
+  cards:[{ic:'👥',t:'¿Quiénes son?',d:'Personas, grupos u organizaciones que pueden afectar el proyecto, verse afectadas o sentir que lo están.'},
+         {ic:'🧭',t:'Matriz poder-interés',d:'Valora influencia e interés para decidir cómo gestionar a cada actor.'},
+         {ic:'🔁',t:'Participación continua',d:'Se identifica y revisa durante todo el ciclo, no solo al inicio.'},
+         {ic:'🛠️',t:'Herramientas',d:'Registro de interesados, mapa de empatía, entrevistas, grupos focales, encuestas y plan de participación.'}],
+  key:['Pregunta orientadora','¿Quién podría bloquear, mejorar o verse afectado por el proyecto y todavía no ha sido escuchado?'],
+  warn:['Ojo','La resistencia posterior parece un problema de actitud, pero a menudo es consecuencia de participación insuficiente.'],
+  quote:'Los usuarios no resisten el cambio: resisten que no los hayan escuchado.'},
+ ex:[
+  {t:'match',q:'Relaciona cada interesado con la estrategia más adecuada.',
+   pairs:[['Patrocinador','Gestionar de cerca: decisiones y alertas oportunas'],['Usuarios finales','Involucrar en diseño, pruebas y formación'],['Equipo operativo','Consultar, capacitar y preparar la transición'],['Regulador / comunidad','Informar, escuchar y demostrar cumplimiento']],
+   why:'La estrategia depende de la influencia y los intereses de cada actor. El mismo trato para todos desperdicia energía y deja a alguien sin escuchar.'},
+  {t:'mcq',q:'Una institución lanza una plataforma y docentes y estudiantes la rechazan. Solo se consultó a directivos y proveedor. ¿Cuál es la lectura más probable?',
+   opts:[['Los docentes tienen mala actitud frente a la tecnología y hay que sensibilizarlos más.',0],['Faltó participación: no se involucró a quienes la usarían desde el diseño y las pruebas.',1],['El proveedor debió cobrar menos para convencer a los usuarios de adoptarla.',0],['Basta con más capacitación el día del lanzamiento para que superen la resistencia.',0]],
+   why:'La resistencia suele ser consecuencia de una participación insuficiente: sin entrevistas, prototipos y pruebas con usuarios, se pasan por alto sus necesidades.'}
+ ]},
+
+/* ───────────────────────── 6 · ÁGIL ───────────────────────── */
+{n:6,theme:'c6',ic:'🔄',year:'2010',title:'El giro ágil',area:'Enfoques predictivo, ágil e híbrido',
+ goal:'Distinguir enfoques y justificar cuál conviene según la incertidumbre.',
+ comic:[
+  [ {bg:'night',cap:'Agosto de 2010 · El FBI adopta un enfoque de desarrollo ágil para completar Sentinel: más participación de su personal, reutilización de componentes y entregas de capacidades.',chars:[['mateo',28,'happy'],['sofia',74,'happy',1]],says:[['mateo','Entregas pequeñas y usuarios probando cada vez.']],props:[['🚀',52,8,38]],sfx:'¡NUEVO RUMBO!'},
+    {bg:'alert',chars:[['vargas',26,'worried'],['sofia',72,'think',1]],says:[['vargas','¿Ágil significa sin plan ni control?'],['sofia','No: planificamos de forma adaptativa, con presupuesto y controles.']],props:[['🧐',52,8,34]]},
+    {bg:'office',chars:[['mateo',28,'think'],['lia',74,'happy',1]],says:[['mateo','Lía, ¿esta función sí te sirve?'],['lia','¡Ahora sí! Me preguntaron.']],props:[['👍',52,8,34]]},
+    {bg:'warm',chars:[['dato',50,'happy']],says:[['dato','Ninguno es mejor en todo: se elige según la incertidumbre, los requisitos y los usuarios.']],props:[['⚖️',18,12,32],['⚖️',82,12,32]]} ]
+ ],
+ concept:{title:'Archivo del proyecto · Enfoques',
+  cards:[{ic:'📐',t:'Predictivo',d:'Alcance y plan definidos con anticipación. Conviene con requisitos estables o alta regulación.'},
+         {ic:'🔁',t:'Ágil',d:'Entregas incrementales y retroalimentación frecuente. Conviene con alta incertidumbre y usuarios accesibles.'},
+         {ic:'🧬',t:'Híbrido',d:'Gobierno y controles predictivos con desarrollo iterativo. Conviene con hitos fijos pero producto que aprende.'},
+         {ic:'🧰',t:'Técnicas ágiles',d:'Historias de usuario, MoSCoW, Kanban, estimación relativa, prototipos y retrospectivas.'}],
+  key:['Nota de rigor','Las fuentes oficiales del caso hablan de «metodología ágil»; no prueban que Sentinel adoptara íntegramente Scrum. Más adelante vemos qué habría aportado.'],
+  warn:['Tecnología con propósito','Un tablero actualizado y usado vale más que una plataforma sofisticada que nadie consulta.'],
+  quote:'Agilidad no es improvisación: es planificar de forma adaptativa.'},
+ ex:[
+  {t:'buckets',q:'¿Qué enfoque conviene en cada situación?',
+   cols:['📐 Predictivo','🔁 Ágil','🧬 Híbrido'],
+   cards:[['Obra con requisitos estables y fuerte regulación',0],['Producto digital con alta incertidumbre y usuarios disponibles',1],['Hitos presupuestales fijos, pero el producto necesita aprendizaje',2],['Entregable físico muy bien especificado',0],['Solución que evoluciona con la retroalimentación de las personas que la usan',1],['Gobierno formal por fases con desarrollo iterativo dentro de cada fase',2]],
+   why:'No hay un enfoque universalmente superior: depende de la estabilidad de los requisitos, la regulación, la posibilidad de entregar por partes y la participación de los usuarios.'},
+  {t:'mcq',q:'En un Sprint solo caben 2 de 4 historias de usuario. ¿Cómo decides cuáles entran?',
+   opts:[['Las que pidió quien tiene el cargo más alto, porque conoce mejor la estrategia.',0],['Las más fáciles de hacer, para terminar rápido y mostrar avance en la revisión.',0],['Por valor, riesgo y esfuerzo, usando MoSCoW y hablando con interesados.',1],['Al azar, para que sea justo con todas las áreas que presentaron solicitudes.',0]],
+   why:'Priorizar es ordenar necesidades por valor, riesgo y esfuerzo y negociar alcance con criterios claros (por ejemplo MoSCoW: Must, Should, Could y Won’t por ahora).'}
+ ]},
+
+/* ───────────────────────── 7 · SCRUM ───────────────────────── */
+{n:7,theme:'c7',ic:'🏉',year:'¿Y si...?',title:'Scrum en acción',area:'Scrum',
+ goal:'Reconocer responsabilidades, eventos, artefactos y compromisos de Scrum.',
+ comic:[
+  [ {bg:'office',cap:'Aunque no se afirma que Sentinel usara Scrum, el caso permite imaginar cómo ayudaría.',chars:[['mateo',26,'happy'],['sofia',72,'happy',1]],says:[['mateo','Product Owner: maximizo el valor y ordeno el Product Backlog. No soy un jefe que reparte tareas.']],props:[['📋',52,8,34]]},
+    {bg:'purple',chars:[['sofia',28,'proud'],['nico',74,'happy',1]],says:[['sofia','Scrum Master: ayudo al equipo a aplicar Scrum y a quitar impedimentos. No soy una secretaria de reuniones.']],props:[['🧹',52,8,34]]},
+    {bg:'warm',chars:[['nico',28,'proud'],['mateo',74,'think',1]],says:[['nico','Developers: construimos un Incremento usable en cada Sprint y decidimos cómo hacerlo.']],props:[['💻',52,8,34]],sfx:'¡INCREMENTO!'},
+    {bg:'night',chars:[['dato',50,'happy']],says:[['dato','Pilares: transparencia, inspección y adaptación.']],props:[['🔍',18,12,30],['🔁',82,12,30]]} ],
+  [ {bg:'office',cap:'Sprint Planning',chars:[['mateo',26,'happy'],['sofia',72,'think',1]],says:[['sofia','¿Por qué es valioso este Sprint? ¿Qué podemos hacer? ¿Cómo?'],['mateo','Sprint Goal: consultar el estado de un caso.']],props:[['🎯',52,8,34]]},
+    {bg:'warm',cap:'Daily Scrum · 15 minutos',chars:[['nico',26,'think'],['sofia',72,'happy',1]],says:[['nico','Hoy integro la consulta con los datos y pruebo.'],['sofia','Anotado el bloqueo: lo resuelvo yo.']],props:[['⏱️',52,8,34]]},
+    {bg:'purple',cap:'Sprint Review',chars:[['lia',26,'happy'],['mateo',72,'proud',1]],says:[['lia','Como analista, quiero ver el estado de mi caso para saber qué falta.'],['mateo','¡Historia cumplida y probada!']],props:[['👏',52,8,34]]},
+    {bg:'night',cap:'Sprint Retrospective',chars:[['sofia',28,'happy'],['nico',74,'happy',1]],says:[['sofia','¿Qué mejoramos en cómo trabajamos?'],['nico','Más pruebas desde el primer día.']],props:[['🔧',52,8,34]],sfx:'¡MEJORA!'} ]
+ ],
+ concept:{title:'Archivo del proyecto · Scrum',
+  cards:[{ic:'👥',t:'Scrum Team',d:'Product Owner, Scrum Master y Developers: pequeño, multifuncional y autogestionado.'},
+         {ic:'🔁',t:'Eventos',d:'Sprint (contenedor de un mes o menos), Planning, Daily Scrum (15 min), Review y Retrospective.'},
+         {ic:'📚',t:'Artefactos',d:'Product Backlog, Sprint Backlog e Increment, cada uno con su compromiso.'},
+         {ic:'🎯',t:'Compromisos',d:'Product Goal, Sprint Goal y Definition of Done (el estado de calidad requerido).'}],
+  key:['Definición esencial','Scrum se basa en el empirismo y en el pensamiento Lean. Sus pilares son transparencia, inspección y adaptación; sus valores, compromiso, foco, apertura, respeto y coraje.'],
+  warn:['Cuidado ético y de datos','La agilidad no justifica omitir controles de acceso, privacidad, seguridad ni consentimiento cuando se trata información sensible.'],
+  quote:'La Daily Scrum no es un reporte al jefe: es un plan para el siguiente día de trabajo.'},
+ ex:[
+  {t:'match',q:'Relaciona cada responsabilidad de Scrum con su propósito.',
+   pairs:[['Product Owner','Maximizar el valor del producto y ordenar el Product Backlog'],['Scrum Master','Establecer Scrum y ayudar a quitar impedimentos'],['Developers','Crear un Incremento usable en cada Sprint']],
+   why:'El Product Owner no es un jefe que asigna tareas, el Scrum Master no es un secretario de reuniones, y los Developers deciden cómo cumplir la Definition of Done.'},
+  {t:'order',q:'Ordena los eventos de un Sprint, del inicio al cierre.',
+   items:['Sprint Planning','Daily Scrum','Sprint Review','Sprint Retrospective'],
+   why:'Se planifica el Sprint, se inspecciona a diario el avance hacia el Sprint Goal, se revisa el resultado con interesados y se mejora la forma de trabajar.'},
+  {t:'mcq',q:'¿Qué es la Definition of Done?',
+   opts:[['La lista de tareas pendientes que el equipo se compromete a terminar en el Sprint.',0],['La descripción formal del estado de calidad que debe cumplir un Incremento.',1],['La fecha en que el patrocinador aprueba el Sprint y autoriza el siguiente.',0],['El informe final que se entrega al terminar el proyecto con las lecciones aprendidas.',0]],
+   why:'La Definition of Done es el compromiso asociado al Incremento: describe formalmente el estado de calidad requerido (probado, integrado, seguro, documentado y aceptado).'}
+ ]},
+
+/* ───────────────────────── 8 · CIERRE Y EVALUACIÓN ───────────────────────── */
+{n:8,theme:'c8',ic:'🏁',year:'2012',title:'Cierre y evaluación',area:'Cierre y evaluación',
+ goal:'Cerrar de manera ordenada y evaluar resultados, beneficios y aprendizajes.',
+ comic:[
+  [ {bg:'warm',cap:'1 de julio de 2012 · Según información del FBI, Sentinel queda disponible para todos los usuarios.',chars:[['vargas',24,'proud'],['clara',50,'happy'],['lia',76,'happy',1]],says:[['vargas','¡Llegamos!']],props:[['🎉',50,6,38]],sfx:'¡LISTO!'},
+    {bg:'office',cap:'El informe de 2012 del Inspector General.',chars:[['rojas',28,'think'],['clara',74,'happy',1]],says:[['rojas','El enfoque ágil redujo los costos de desarrollo y el ritmo al que se gastaban los recursos.']],props:[['📉',52,8,34]]},
+    {bg:'alert',chars:[['rojas',28,'angry'],['vargas',74,'worried',1]],says:[['rojas','Pero esa cifra no incluía unos dos años de operación y mantenimiento (≈ 60 millones de dólares).'],['rojas','Hubo ajustes de calendario, más hardware y funciones sin migrar.']],props:[['🧾',52,8,34]]},
+    {bg:'night',chars:[['dato',50,'think']],says:[['dato','Ayudó a recuperar control, pero no fue un éxito sin reservas. Cerrar es aceptar, transferir y aprender.']],props:[['📖',18,12,30],['🦉',82,12,30]],sfx:'¡LECCIÓN!'} ]
+ ],
+ concept:{title:'Archivo del proyecto · Cierre y evaluación',
+  cards:[{ic:'✅',t:'Actividades de cierre',d:'Verificar entregables, obtener aceptación formal, cerrar contratos, transferir y capacitar, y consolidar lecciones.'},
+         {ic:'🔧',t:'Transferencia',d:'Responsable funcional, soporte, presupuesto recurrente, indicadores y plan de continuidad.'},
+         {ic:'📈',t:'Evaluar',d:'Eficiencia, eficacia, efectividad e impacto. Algunos beneficios tardan meses en verse.'},
+         {ic:'🧠',t:'Lecciones aprendidas',d:'Contexto, causa, efecto, decisión y recomendación transferible. Se documentan durante el proyecto.'}],
+  key:['Indicadores de valor ganado','CPI = EV / AC · SPI = EV / PV · CV = EV − AC · SV = EV − PV. Menor que 1 (o negativo) es señal de alerta, no un veredicto: se lee con causas, calidad y riesgos.'],
+  warn:['Cierre exitoso','Un proyecto no termina cuando el equipo deja de reunirse: termina cuando se aceptó, se transfirió, se cerraron las obligaciones y la organización puede sostener lo entregado.'],
+  quote:'El éxito no es solo terminar a tiempo: es lo que permanece después de cerrar.'},
+ ex:[
+  {t:'order',q:'Ordena un cierre ordenado del proyecto.',
+   items:['Verificar los entregables contra los criterios de aceptación','Obtener la aceptación formal','Cerrar contratos, pagos y garantías','Transferir a la operación y capacitar','Consolidar lecciones aprendidas e informe final'],
+   why:'Se verifica y se acepta primero; luego se cierran las obligaciones, se transfiere la capacidad para sostener el servicio y se documenta lo aprendido.'},
+  {t:'mcq',q:'Un proyecto tiene PV = 200, EV = 180 y AC = 240 (millones). ¿Qué indican CPI y SPI?',
+   opts:[['CPI = 0,75 y SPI = 0,90: sobrecosto y atraso.',1],['CPI = 1,33 y SPI = 1,11: ahorro y adelanto.',0],['CPI = 0,75 y SPI = 1,11: sobrecosto pero adelantado.',0],['CPI = 1,00 y SPI = 0,90: costos en regla, solo atraso.',0]],
+   why:'CPI = EV/AC = 180/240 = 0,75 y SPI = EV/PV = 180/200 = 0,90. Ambos por debajo de 1: se obtiene menos valor por peso gastado y el avance va por debajo del plan.'},
+  {t:'buckets',q:'Clasifica el registro de lecciones aprendidas.',
+   cols:['✖ Registro débil','✔ Registro útil'],
+   cards:[['«La comunicación fue mala».',0],['«El proveedor se demoró».',0],['«Faltó compromiso».',0],['Los usuarios conocieron el cambio dos semanas antes del lanzamiento: incluir un plan de comunicación por audiencia desde la planificación.',1],['La integración no se probó con datos reales hasta el final: acordar pruebas tempranas y criterios de aceptación por hito.',1],['El personal asignado no tenía tiempo protegido: formalizar disponibilidad y suplencias en el acta de inicio.',1]],
+   why:'Una buena lección describe contexto, situación, causa, efecto, decisión y recomendación transferible; así la organización no empieza de cero en cada proyecto.'}
+ ]}
+];
+
+/* ══════════ CLÍNICA FINAL: decisiones del caso práctico ══════════ */
+const FINAL=[
+ {s:'Requisitos',bad:'Desarrollar todo lo que pide cada área, sin priorizar.',good:'Ordenar las necesidades por valor, riesgo y esfuerzo y validar un alcance inicial.'},
+ {s:'Cronograma',bad:'Comprometer una fecha sin revisar capacidad ni dependencias.',good:'Estimar con el equipo, identificar la ruta crítica y revisar los pronósticos.'},
+ {s:'Calidad',bad:'Probar al final para no «perder tiempo».',good:'Integrar pruebas desde cada Sprint y definir la Definition of Done.'},
+ {s:'Cierre',bad:'Publicar la herramienta y disolver el equipo.',good:'Obtener aceptación, transferir el soporte, capacitar y medir beneficios.'}
+];
+
+/* ══════════ MOTOR DEL LIBRO ══════════ */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const KEY='sentinel_libro_v1';
+let S={name:'',idx:0,max:0,ex:{},quotes:{}};
+let PAGES=[],BUSY=false;
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&d.name)return d;}catch(e){}return null;}
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2600);}
+
+/* ── estructura de páginas ── */
+(function(){
+  PAGES.push({k:'cover',label:'Portada'},{k:'chars',label:'El reparto'});
+  CH.forEach((c,i)=>{
+    PAGES.push({k:'chcover',i,theme:c.theme,label:`Capítulo ${c.n} · ${c.title}`});
+    c.comic.forEach((_,j)=>PAGES.push({k:'comic',i,j,theme:c.theme,label:`Capítulo ${c.n} · ${c.title}`}));
+    PAGES.push({k:'concept',i,theme:c.theme,label:`Capítulo ${c.n} · ${c.title}`});
+    c.ex.forEach((_,j)=>PAGES.push({k:'ex',i,j,theme:c.theme,label:`Capítulo ${c.n} · ${c.title}`,gate:`${i}-${j}`}));
+  });
+  PAGES.push({k:'clinic',theme:'c8',label:'Epílogo · Clínica de decisiones',gate:'clinic'});
+  PAGES.push({k:'end',theme:'c8',label:'Epílogo · Tu diploma'});
+})();
+
+/* ── estrellas ── */
+function chStars(i){const vals=CH[i].ex.map((_,j)=>S.ex[`${i}-${j}`]);if(vals.some(v=>v===undefined))return 0;const a=vals.reduce((x,y)=>x+y,0)/vals.length;return a>=.85?3:a>=.6?2:1;}
+function totalStars(){return CH.reduce((a,_,i)=>a+chStars(i),0);}
+function avgPct(){const keys=Object.keys(S.ex);if(!keys.length)return 0;return Math.round(100*keys.reduce((a,k)=>a+S.ex[k],0)/keys.length);}
+function firstName(){return (S.name||'').split(' ')[0];}
+
+/* ── piezas de dibujo ── */
+function panelHTML(pn,idx){
+  const rot=((idx*37)%5-2)*.35;
+  const sx={};(pn.chars||[]).forEach(c=>sx[c[0]]=c[1]);
+  const says=(pn.says||[]).map((s,k)=>{const x=sx[s[0]]!==undefined?sx[s[0]]:50;const left=x<50;
+    return `<div class="bub ${left?'l':'r'}" style="--d:${k*.7}s;--tl:${left?Math.max(8,Math.min(60,x-4)):Math.min(84,Math.max(40,x-18))}%"><b style="display:none">${esc(s[0])}</b>${esc(s[1])}</div>`;}).join('');
+  const chars=(pn.chars||[]).map(c=>`<div class="cw" style="left:${c[1]}%">${charSVG(c[0],c[2],c[3])}</div>`).join('');
+  const props=(pn.props||[]).map(p=>`<span class="prp" style="left:${p[1]}%;bottom:${p[2]}px;font-size:${p[3]}px;transform:translateX(-50%)">${p[0]}</span>`).join('');
+  return `<div class="panel" style="--rot:${rot}deg">${pn.cap?`<div class="cap">${esc(pn.cap)}</div>`:''}
+    <div class="scene bg-${pn.bg||'office'}"><div>${pn.sfx?`<div class="sfx">${esc(pn.sfx)}</div>`:''}${says}</div><div class="chrow">${props}${chars}</div></div></div>`;
+}
+function foot(p,n){return `<div class="pgfoot"><span>${esc(p.label)}</span><span>Pág. ${n+1} / ${PAGES.length}</span></div>`;}
+
+/* ── constructores de página ── */
+function pageCover(){
+  const saved=load();
+  const blocks=`<div class="blk" style="right:-40px;top:8%;width:130px;height:250px;background:#FFC20E;transform:skewX(-8deg) rotate(6deg)"></div><div class="blk" style="left:30px;bottom:-60px;width:150px;height:210px;background:#052570;transform:skewX(8deg) rotate(-6deg)"></div><div class="blk" style="right:12%;bottom:-40px;width:110px;height:150px;background:#7DB4FF;opacity:.5;transform:skewX(-8deg)"></div>`;
+  return `<div class="leaf cover">${blocks}<div class="pg">
+    <span class="tagc">${esc(BOOK.tag)}</span>
+    <h1>SENT<em>I</em>NEL</h1>
+    <div class="sub">${esc(BOOK.sub)}</div>
+    <div class="cast">${['rojas','clara','dato','vargas','lia'].map(id=>`<div class="cw2">${charSVG(id,'happy',id==='lia'||id==='vargas')}</div>`).join('')}</div>
+    <div style="display:grid;gap:8px;justify-items:center">
+      <label for="nm">Escribe tu nombre para firmar tu libro</label>
+      <input id="nm" maxlength="60" autocomplete="name" placeholder="Nombre y apellido" value="">
+      <button class="nb" id="openBtn" disabled>Abrir el libro 📖</button>
+    </div>
+    <div class="resumebox" id="resume"><button class="nb ghost" id="resBtn"></button><button class="nb ghost" id="newBtn" style="font-size:12px;padding:8px 14px">Empezar de cero</button></div>
+    <p class="small">Basado en el caso <b>Sentinel</b> (FBI) de la unidad «Áreas de conocimiento, métodos ágiles, cierre y evaluación». Los hechos del caso provienen de los informes citados en la unidad; los personajes y diálogos son ficticios y tienen fines didácticos.<br>Docente: <b>${esc(BOOK.docente)}</b></p>
+  </div></div>`;
+}
+function pageChars(n){
+  const ids=['clara','vargas','rojas','lia','bruno','nico','mateo','sofia','dato'];
+  const tones=['#DCE9FF','#FFE8A8','#FFD6CC','#E3DBFF','#FFE3C2','#CFF2DE','#CFF2F0','#E8F7D4','#E3DBFF'];
+  return `<div class="leaf"><div class="pg"><span class="ribbon"><span>Antes de comenzar</span></span>
+    <h2 class="ttl">El reparto de la historia</h2>
+    <p class="lede">Conoce a los personajes y la función que cumple cada uno. Son <b>ficticios</b>, pero cada uno representa un rol real de un proyecto: así podrás reconocerlos en las decisiones que verás en cada capítulo.</p>
+    <div class="cast-grid">${ids.map((id,k)=>{const c=CHARS[id];return `<div class="cc" style="animation-delay:${k*.12}s"><div class="av" style="background:${tones[k]}">${charSVG(id,k%3===1?'proud':'happy',k%2)}</div>
+      <h3>${esc(c.name)}</h3><div class="role">${esc(c.role)}</div><p>${esc(c.fn)}</p><div class="tags"><span class="ar">${esc(c.area)}</span>${c.area2.split(' · ').filter(a=>!(c.area.toLowerCase().startsWith(a.toLowerCase())||a.toLowerCase().startsWith(c.area.toLowerCase()))).map(a=>`<span>${esc(a)}</span>`).join('')}</div></div>`;}).join('')}</div>
+    </div>${foot(PAGES[n],n)}</div>`;
+}
+function pageChCover(p,n){const c=CH[p.i];
+  return `<div class="leaf chcover"><div class="pg"><div class="big">${c.ic}</div><div class="num">${String(c.n).padStart(2,'0')}</div>
+    <span class="yr">${esc(c.year)}</span><h2>${esc(c.title)}</h2><div class="area">Área: ${esc(c.area)}</div>
+    <div class="goal"><b>En este capítulo:</b> ${esc(c.goal)}</div>
+    <div class="area" style="color:#fff;opacity:.85">${c.comic.length} página${c.comic.length>1?'s':''} de historieta · 1 archivo del proyecto · ${c.ex.length} ejercicios</div></div>${foot(p,n)}</div>`;
+}
+function pageComic(p,n){const c=CH[p.i];const panels=c.comic[p.j];
+  return `<div class="leaf"><div class="pg"><div class="hd"><span class="ribbon"><span>Cap. ${c.n} · ${esc(c.year)}</span></span><h2 class="ttl">${esc(c.title)}</h2></div>
+    <div class="cgrid">${panels.map((pn,k)=>panelHTML(pn,k+p.i*3+p.j)).join('')}</div></div>${foot(p,n)}</div>`;
+}
+function pageConcept(p,n){const c=CH[p.i],k=c.concept;
+  return `<div class="leaf"><div class="pg"><span class="ribbon"><span>Archivo del proyecto</span></span><h2 class="ttl">${esc(k.title.replace('Archivo del proyecto · ',''))}</h2>
+    <p class="lede">Toca cada tarjeta para girarla y leer el detalle.</p>
+    <div class="fgrid">${k.cards.map(x=>`<div class="fcard" tabindex="0" role="button" aria-label="${esc(x.t)}"><div class="fi"><div class="ff"><span class="ic">${x.ic}</span><b>${esc(x.t)}</b><small>Toca para girar</small></div><div class="fb"><b>${esc(x.t)}</b>${esc(x.d)}</div></div></div>`).join('')}</div>
+    <div class="callout"><div><b>${esc(k.key[0])}</b>${esc(k.key[1])}</div></div>
+    <div class="callout w"><div><b>${esc(k.warn[0])}</b>${esc(k.warn[1])}</div></div>
+    <div class="quote" id="quote${p.i}">${esc(k.quote)}<small>Frase del capítulo ${c.n} · colección ${Object.keys(S.quotes).length+(S.quotes[p.i]?0:1)} de ${CH.length}</small><div class="owl">${charSVG('dato','happy')}</div></div>
+    </div>${foot(p,n)}</div>`;
+}
+function pageEx(p,n){const c=CH[p.i],ex=c.ex[p.j];
+  return `<div class="leaf"><div class="pg" id="expg"><span class="ribbon"><span>Ejercicio práctico · ${p.j+1} de ${c.ex.length}</span></span>
+    <h2 class="exq">${esc(ex.q)}</h2><div id="exbody"></div><div class="fb2" id="fb"></div></div>${foot(p,n)}</div>`;
+}
+function pageClinic(p,n){
+  return `<div class="leaf"><div class="pg"><span class="ribbon"><span>Epílogo · Caso práctico</span></span><h2 class="ttl">Clínica de decisiones</h2>
+    <p class="lede">Una institución de educación superior implementa un servicio digital para solicitar certificados. En cada situación elige la decisión que tomaría un buen director de proyecto.</p>
+    <div id="clinic"></div><div class="fb2" id="fb"></div></div>${foot(p,n)}</div>`;
+}
+function pageEnd(p,n){
+  return `<div class="leaf"><div class="pg"><span class="ribbon"><span>Fin de la historia</span></span><h2 class="ttl">¡Cierre del libro, <span id="endname"></span>!</h2>
+    <p class="lede">Sentinel nos recuerda que los proyectos se recuperan con evidencia, participación y aprendizaje. Este es tu diploma. Descárgalo en PNG o PDF.</p>
+    <div class="certbox"><img id="certImg" alt="Diploma de lectura"></div>
+    <div class="row"><button class="nb" onclick="dlPDF()">Descargar PDF</button><button class="nb" onclick="dlPNG()">Descargar PNG</button><button class="nb ghost" style="color:var(--navy);background:#fff;border-color:var(--navy)" onclick="restart()">Leer de nuevo</button></div>
+    <p class="lede" style="font-size:13px;margin-top:10px">Si tu navegador bloquea la descarga, haz clic derecho (o mantén presionado en el celular) sobre el diploma y elige «Guardar imagen».</p>
+    <div class="row" id="endstats"></div>
+    <div class="callout" style="margin-top:16px"><div><b>Para seguir pensando</b>¿Qué evidencia habría permitido ver antes que el proyecto perdía el control? ¿Qué costos y responsabilidades deben considerarse para afirmar que un proyecto está realmente cerrado? ¿Qué aspectos del caso se pueden trasladar a proyectos educativos, tecnológicos o institucionales en Colombia?</div></div>
+    </div>${foot(p,n)}</div>`;
+}
+function makeLeaf(p,n){
+  const h=p.k==='cover'?pageCover():p.k==='chars'?pageChars(n):p.k==='chcover'?pageChCover(p,n):p.k==='comic'?pageComic(p,n):p.k==='concept'?pageConcept(p,n):p.k==='ex'?pageEx(p,n):p.k==='clinic'?pageClinic(p,n):pageEnd(p,n);
+  const d=document.createElement('div');d.innerHTML=h.trim();return d.firstChild;
+}
+
+/* ── navegación ── */
+function gateOK(p){return !p.gate||S.ex[p.gate]!==undefined;}
+function updateNav(){
+  const p=PAGES[S.idx];
+  $('prev').disabled=S.idx===0||BUSY;
+  const last=S.idx===PAGES.length-1;
+  $('next').disabled=last||BUSY||p.k==='cover'||!gateOK(p);
+  $('next').textContent=p.k==='chars'?'Comenzar la historia ▶':last?'Fin':'Siguiente ▶';
+  $('gate').textContent=(!gateOK(p)&&p.k!=='cover')?'✏️ Resuelve el ejercicio para pasar la página':'';
+  $('stars').textContent=totalStars();
+  $('who').textContent=S.name?firstName():'Lector/a';
+  const cur=p.i!==undefined?p.i:(S.idx>=PAGES.length-2?CH.length:-1);
+  document.querySelectorAll('.prog i b').forEach((b,i)=>{b.style.width=i<cur?'100%':i===cur?Math.max(10,Math.round(100*chProgress(i))) +'%':'0%';});
+  $('hdr').style.display=p.k==='cover'?'none':'flex';
+}
+function chProgress(i){const idxs=PAGES.map((p,k)=>p.i===i?k:-1).filter(k=>k>=0);const a=idxs[0],b=idxs[idxs.length-1];return Math.min(1,Math.max(0,(S.idx-a+1)/(b-a+1)));}
+function go(idx,dir){
+  if(BUSY||idx<0||idx>=PAGES.length)return;
+  const first=!$('book').querySelector('.leaf');
+  const p=PAGES[idx],el=makeLeaf(p,idx);
+  const book=$('book'),old=book.querySelector('.leaf.top');
+  S.idx=idx;S.max=Math.max(S.max,idx);save();
+  BG.set(p.theme||'cover');
+  if(!old){el.classList.add('top');book.appendChild(el);afterShow(el,p,0);}
+  else{
+    BUSY=true;updateNav();
+    if(dir>=0){el.classList.add('under');book.appendChild(el);old.classList.remove('top');old.classList.add('turn-out');
+      setTimeout(()=>{old.remove();el.classList.remove('under');el.classList.add('top');BUSY=false;updateNav();},880);}
+    else{el.classList.add('turn-in');book.appendChild(el);
+      setTimeout(()=>{old.remove();el.classList.remove('turn-in');el.classList.add('top');BUSY=false;updateNav();},880);}
+    afterShow(el,p,650);
+  }
+  updateNav();
+}
+function next(){go(S.idx+1,1);}
+function prev(){go(S.idx-1,-1);}
+
+/* ── activación por página ── */
+function afterShow(el,p,delay){
+  const pg=el.querySelector('.pg');if(pg)pg.scrollTop=0;
+  if(p.k==='cover')initCover(el);
+  if(p.k==='chars'||p.k==='chcover'||p.k==='comic'){
+    const items=[...el.querySelectorAll('.panel')];
+    items.forEach((pn,k)=>setTimeout(()=>pn.classList.add('in'),delay+150+k*650));
+    if(p.k==='chars')setTimeout(()=>el.classList.add('in'),delay+100);
+    el.querySelectorAll('.panel').forEach(pn=>pn.addEventListener('click',()=>{pn.classList.remove('in');void pn.offsetWidth;pn.classList.add('in');}));
+  }
+  if(p.k==='concept'){
+    el.querySelectorAll('.fcard').forEach(f=>{f.onclick=()=>f.classList.toggle('on');f.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f.classList.toggle('on');}};});
+    setTimeout(()=>{const q=el.querySelector('.quote');if(q){q.classList.add('collect');}if(!S.quotes[p.i]){S.quotes[p.i]=1;save();toast('🦉 Frase coleccionada · '+Object.keys(S.quotes).length+' de '+CH.length);}},delay+500);
+  }
+  if(p.k==='ex')initEx(el,p);
+  if(p.k==='clinic')initClinic(el,p);
+  if(p.k==='end')initEnd(el);
+}
+
+function initCover(el){
+  const inp=el.querySelector('#nm'),btn=el.querySelector('#openBtn'),saved=load();
+  const ok=()=>inp.value.trim().length>=3;
+  inp.oninput=()=>{btn.disabled=!ok();};
+  const open=()=>{if(!ok())return;S.name=inp.value.trim().replace(/\s+/g,' ');save();go(1,1);};
+  btn.onclick=open;inp.onkeydown=e=>{if(e.key==='Enter')open();};
+  if(saved){const r=el.querySelector('#resume');r.style.display='flex';const rb=el.querySelector('#resBtn');rb.textContent=`Continuar como ${saved.name.split(' ')[0]} (pág. ${saved.idx+1})`;
+    rb.onclick=()=>{S=Object.assign({name:'',idx:0,max:0,ex:{},quotes:{}},saved);go(Math.max(1,S.idx),1);};
+    el.querySelector('#newBtn').onclick=()=>{try{localStorage.removeItem(KEY);}catch(e){}S={name:'',idx:0,max:0,ex:{},quotes:{}};r.style.display='none';};}
+}
+
+/* ── ejercicios ── */
+function fbShow(frac,why){
+  const f=$('fb');const cls=frac>=.99?'good':frac>=.6?'mid':'bad';
+  const t=frac>=.99?'¡Decisión acertada!':frac>=.6?'Bien, con algunos tropiezos':'Revisemos esto';
+  f.className='fb2 on '+cls;f.innerHTML=`<h5>${t}</h5>${esc(why)}`;
+  setTimeout(()=>{const pg=document.querySelector('.leaf.top .pg');if(pg)pg.scrollTo({top:pg.scrollHeight,behavior:'smooth'});},120);
+}
+function exDone(key,frac,why,p){
+  S.ex[key]=frac;save();fbShow(frac,why);updateNav();
+  if(p&&p.i!==undefined&&p.j===CH[p.i].ex.length-1){const s=chStars(p.i);setTimeout(()=>toast('Capítulo '+CH[p.i].n+' completado · '+'⭐'.repeat(s)),700);}
+}
+function initEx(el,p){
+  const ex=CH[p.i].ex[p.j],body=el.querySelector('#exbody'),key=p.gate;let errors=0;
+  const fin=n=>exDone(key,n/(n+errors),ex.why,p);
+  if(S.ex[key]!==undefined&&ex.t!=='x'){/* ya resuelto: permite repasar */}
+  if(ex.t==='mcq'){
+    const opts=shuffle(ex.opts);body.innerHTML=`<div class="opts">${opts.map((o,k)=>`<button class="op" data-k="${k}"><span class="k">${'ABCD'[k]}</span><span>${esc(o[0])}</span></button>`).join('')}</div>`;
+    body.querySelectorAll('.op').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;body.querySelectorAll('.op').forEach((x,i)=>{x.disabled=true;if(opts[i][1])x.classList.add('ok');else if(i===k)x.classList.add('no');else x.classList.add('dim');});exDone(key,opts[k][1]?1:0,ex.why,p);});
+  }
+  if(ex.t==='match'){
+    const L=ex.pairs.map((p2,i)=>({t:p2[0],i})),R=shuffle(ex.pairs.map((p2,i)=>({t:p2[1],i})));let sel=null,m=0;
+    body.innerHTML=`<p class="lede" style="margin:-6px 0 10px">Toca un elemento de la izquierda y luego su pareja.</p><div class="two"><div class="col" id="cl">${L.map(x=>`<button class="it" data-i="${x.i}">${esc(x.t)}</button>`).join('')}</div><div class="col" id="cr">${R.map(x=>`<button class="it" data-i="${x.i}">${esc(x.t)}</button>`).join('')}</div></div>`;
+    body.querySelectorAll('#cl .it').forEach(b=>b.onclick=()=>{body.querySelectorAll('#cl .it').forEach(x=>x.classList.remove('sel'));sel=b;b.classList.add('sel');});
+    body.querySelectorAll('#cr .it').forEach(b=>b.onclick=()=>{if(!sel)return toast('Primero toca un elemento de la izquierda');
+      if(sel.dataset.i===b.dataset.i){sel.classList.remove('sel');sel.classList.add('done');b.classList.add('done');sel=null;m++;if(m===L.length)fin(m);}
+      else{errors++;b.classList.add('err');setTimeout(()=>b.classList.remove('err'),420);}});
+  }
+  if(ex.t==='buckets'){
+    const cards=shuffle(ex.cards.map((c,i)=>({t:c[0],c:c[1],i})));let sel=null,left=cards.length;const nc=ex.cols.length;
+    body.innerHTML=`<p class="lede" style="margin:-6px 0 10px">Toca una tarjeta y luego la columna donde va.</p><div class="pool" id="pool">${cards.map(c=>`<button class="it" data-i="${c.i}" data-c="${c.c}">${esc(c.t)}</button>`).join('')}</div><div class="bk c${nc}">${ex.cols.map((t,k)=>`<div class="drop" data-c="${k}" tabindex="0"><h4>${esc(t)}</h4></div>`).join('')}</div>`;
+    const pick=b=>{body.querySelectorAll('#pool .it').forEach(x=>x.classList.remove('sel'));sel=b;b.classList.add('sel');};
+    body.querySelectorAll('#pool .it').forEach(b=>b.onclick=()=>pick(b));
+    body.querySelectorAll('.drop').forEach(d=>d.onclick=()=>{if(!sel)return toast('Primero toca una tarjeta');
+      if(sel.dataset.c===d.dataset.c){sel.classList.remove('sel');sel.classList.add('done');sel.onclick=null;d.appendChild(sel);sel=null;left--;if(!left)fin(cards.length);}
+      else{errors++;const s=sel;s.classList.add('err');setTimeout(()=>s.classList.remove('err'),420);}});
+  }
+  if(ex.t==='order'){
+    const chips=shuffle(ex.items.map((t,i)=>({t,i})));let nx=0;
+    body.innerHTML=`<p class="lede" style="margin:-6px 0 10px">Toca los pasos en el orden correcto.</p><div class="seq" id="seq">${ex.items.map((_,i)=>`<div class="slot"><b>${i+1}</b><span></span></div>`).join('')}</div><div class="pool" id="pool">${chips.map(c=>`<button class="it" data-i="${c.i}">${esc(c.t)}</button>`).join('')}</div>`;
+    body.querySelectorAll('#pool .it').forEach(b=>b.onclick=()=>{if(+b.dataset.i===nx){const s=body.querySelectorAll('.slot')[nx];s.classList.add('f');s.querySelector('span').textContent=ex.items[nx];b.classList.add('done');b.style.visibility='hidden';nx++;if(nx===ex.items.length)fin(nx);}
+      else{errors++;b.classList.add('err');setTimeout(()=>b.classList.remove('err'),420);}});
+  }
+}
+
+/* ── clínica final ── */
+function initClinic(el,p){
+  const box=el.querySelector('#clinic');let good=0,answered=0;
+  box.innerHTML=FINAL.map((s,i)=>{const o=shuffle([[s.bad,0],[s.good,1]]);return `<div class="sit" data-i="${i}"><h4>Situación ${i+1} · ${esc(s.s)}</h4><div class="two">${o.map(x=>`<button class="op" data-g="${x[1]}"><span class="k">${x[1]?'✓':'?'}</span><span>${esc(x[0])}</span></button>`).join('')}</div></div>`;}).join('');
+  box.querySelectorAll('.sit').forEach(sit=>sit.querySelectorAll('.op').forEach(b=>b.onclick=()=>{
+    sit.querySelectorAll('.op').forEach(x=>{x.disabled=true;x.querySelector('.k').textContent=x.dataset.g==='1'?'✓':'✗';if(x.dataset.g==='1')x.classList.add('ok');else if(x===b)x.classList.add('no');else x.classList.add('dim');});
+    if(b.dataset.g==='1')good++;answered++;
+    if(answered===FINAL.length){const frac=good/FINAL.length;S.ex.clinic=frac;save();updateNav();fbShow(frac,'Las decisiones positivas aparecen en tu pantalla marcadas con ✓: priorizar por valor, estimar con el equipo, probar desde el inicio y cerrar con aceptación, transferencia y medición de beneficios.');}
+  }));
+}
+
+/* ── diploma ── */
+let CERT={canvas:null};
+function summary(){const avg=avgPct();return {avg,cat:avg>=90?{n:'Oro',e:'🥇'}:avg>=75?{n:'Plata',e:'🥈'}:{n:'Bronce',e:'🥉'}};}
+function certCode(sm,d){let h=5381;const s=`${S.name}|${sm.avg}|${totalStars()}|${d}`;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;const t=h.toString(36).toUpperCase().padStart(8,'0').slice(-8);return `SN-${t.slice(0,4)}-${t.slice(4)}`;}
+function wrapLines(c,t,w){const ws=t.split(' '),ls=[];let cur='';ws.forEach(x=>{const u=cur?cur+' '+x:x;if(c.measureText(u).width>w&&cur){ls.push(cur);cur=x;}else cur=u;});if(cur)ls.push(cur);return ls;}
+function initEnd(el){
+  const sm=summary();el.querySelector('#endname').textContent=firstName();
+  el.querySelector('#endstats').innerHTML=`<div class="stat"><b>${sm.avg}%</b><span>Precisión</span></div><div class="stat"><b>${totalStars()}/${CH.length*3}</b><span>Estrellas</span></div><div class="stat"><b>${Object.keys(S.quotes).length}/${CH.length}</b><span>Frases</span></div><div class="stat"><b>${sm.cat.e}</b><span>Categoría ${sm.cat.n}</span></div>`;
+  drawCert();
+}
+async function drawCert(){
+  try{await Promise.all([document.fonts.load('800 80px Montserrat'),document.fonts.load('500 30px Inter'),document.fonts.load('400 60px Bangers')]);}catch(e){}
+  const W=1754,H=1240,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  const NAVY='#052570',BLUE='#0A43C4',DIM='#3C4F7E',DISP="Montserrat,system-ui,sans-serif",BODY="Inter,system-ui,sans-serif",COM="Bangers,Impact,sans-serif";
+  const sp=v=>{try{c.letterSpacing=v;}catch(e){}};const sm=summary(),now=new Date();
+  const dateTxt=now.toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'}),code=certCode(sm,now.toISOString().slice(0,10));
+  c.fillStyle='#F6F9FF';c.fillRect(0,0,W,H);
+  c.fillStyle=BLUE;c.fillRect(0,0,W,330);
+  c.fillStyle=NAVY;c.beginPath();c.moveTo(W-420,0);c.lineTo(W,0);c.lineTo(W,330);c.lineTo(W-520,330);c.closePath();c.fill();
+  c.fillStyle='#2F7BFF';c.beginPath();c.moveTo(W-300,0);c.lineTo(W-180,0);c.lineTo(W-260,330);c.lineTo(W-380,330);c.closePath();c.fill();
+  c.fillStyle='#FFC20E';c.beginPath();c.moveTo(90,70);c.lineTo(190,50);c.lineTo(190,280);c.lineTo(90,300);c.closePath();c.fill();
+  c.strokeStyle=NAVY;c.lineWidth=8;c.strokeRect(36,36,W-72,H-72);c.strokeStyle='#FFC20E';c.lineWidth=4;c.strokeRect(58,58,W-116,H-116);
+  c.fillStyle='#FFC20E';c.fillRect(0,H-26,W,26);c.fillStyle=BLUE;c.fillRect(0,H-26,W*.34,26);
+  c.textAlign='center';c.textBaseline='alphabetic';
+  c.fillStyle='#FFC20E';c.font=`500 24px ${BODY}`;sp('6px');c.fillText('LIBRO INTERACTIVO · SENTINEL · GERENCIA DE PROYECTOS',W/2,140);
+  c.fillStyle='#fff';c.font=`800 96px ${DISP}`;sp('-2px');c.fillText('CERTIFICADO DE LOGRO',W/2,258);sp('0px');
+  c.fillStyle=DIM;c.font=`500 32px ${BODY}`;c.fillText('Se otorga a',W/2,410);
+  let fs=104;c.font=`800 ${fs}px ${DISP}`;while(c.measureText(S.name).width>1260&&fs>40){fs-=4;c.font=`800 ${fs}px ${DISP}`;}
+  c.fillStyle=NAVY;c.fillText(S.name,W/2,520);const nw=Math.min(1300,c.measureText(S.name).width+120);c.fillStyle='#FFC20E';c.fillRect(W/2-nw/2,546,nw,4);
+  c.fillStyle=DIM;c.font=`500 31px ${BODY}`;
+  const para=`por completar el libro interactivo «Sentinel: la historia de un proyecto que tuvo que cambiar de rumbo» del módulo Gerencia de Proyectos: áreas de conocimiento, métodos ágiles y Scrum, cierre y evaluación, con una precisión promedio de ${sm.avg}%.`;
+  wrapLines(c,para,1200).forEach((l,i)=>c.fillText(l,W/2,610+i*44));
+  const stats=[[sm.avg+'%','PRECISIÓN'],[totalStars()+'/'+CH.length*3,'ESTRELLAS'],[Object.keys(S.quotes).length+'/'+CH.length,'FRASES COLECCIONADAS'],['Categoría '+sm.cat.n,'RECONOCIMIENTO']];
+  const colW=400,x0=W/2-colW*2+colW/2,ys=850;
+  stats.forEach(([v,l],i)=>{const x=x0+i*colW;c.fillStyle=BLUE;let f=i===3?44:62;c.font=`800 ${f}px ${DISP}`;while(c.measureText(v).width>colW-40&&f>22){f-=2;c.font=`800 ${f}px ${DISP}`;}c.fillText(v,x,ys);
+    c.fillStyle=DIM;c.font=`500 19px ${BODY}`;sp('3px');c.fillText(l,x,ys+40);sp('0px');if(i<3){c.fillStyle='rgba(5,37,112,.18)';c.fillRect(x+colW/2,ys-52,2,100);}});
+  c.fillStyle=NAVY;c.font=`700 26px ${DISP}`;c.fillText('Capítulos completados',W/2,946);
+  const iw=116,x1=W/2-(CH.length*iw)/2+iw/2;
+  CH.forEach((ch,i)=>{c.font=`46px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;c.globalAlpha=chStars(i)?1:.2;c.fillStyle=NAVY;c.fillText(ch.ic,x1+i*iw,996);c.font=`20px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;c.fillText('⭐'.repeat(chStars(i)||0),x1+i*iw,1030);});c.globalAlpha=1;
+  const fy=1070;c.textAlign='left';c.fillStyle=NAVY;c.font=`600 26px ${BODY}`;c.fillText(dateTxt,130,fy+60);c.fillStyle=DIM;c.font=`500 19px ${BODY}`;sp('1px');c.fillText('Código '+code,130,fy+96);sp('0px');
+  c.textAlign='center';c.fillStyle=NAVY;c.fillRect(W/2-250,fy+22,500,2);c.font=`700 30px ${DISP}`;c.fillText(BOOK.docente,W/2,fy+62);c.fillStyle=DIM;c.font=`500 24px ${BODY}`;c.fillText('Docente del módulo · Gerencia de Proyectos',W/2,fy+94);
+  c.textAlign='right';c.fillStyle=BLUE;c.font=`700 30px ${DISP}`;c.fillText('Categoría '+sm.cat.n,W-130,fy+96);c.font=`56px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;c.fillText(sm.cat.e,W-130,fy+38);
+  CERT.canvas=cv;try{const im=document.getElementById('certImg');if(im)im.src=cv.toDataURL('image/png');}catch(e){}
+}
+function fileBase(){return 'Certificado_Sentinel_'+S.name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'');}
+function saveBlob(b,n){const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(u);},2000);}
+function dlPNG(){if(!CERT.canvas)return toast('El diploma se está preparando…');CERT.canvas.toBlob(b=>{if(!b)return toast('No se pudo generar la imagen');saveBlob(b,fileBase()+'.png');toast('📥 Diploma PNG descargado');},'image/png');}
+function makePDF(u,w,h){const bin=atob(u.split(',')[1]),jpg=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)jpg[i]=bin.charCodeAt(i);
+  const pw=842,ph=Math.round(842*h/w),enc=new TextEncoder(),parts=[],off=[];let pos=0;const push=x=>{const v=typeof x==='string'?enc.encode(x):x;parts.push(v);pos+=v.length;};
+  push('%PDF-1.4\n');off[1]=pos;push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');off[2]=pos;push('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+  off[3]=pos;push(`3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw} ${ph}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>\nendobj\n`);
+  off[4]=pos;push(`4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`);push(jpg);push('\nendstream\nendobj\n');
+  const ct=`q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`;off[5]=pos;push(`5 0 obj\n<< /Length ${ct.length} >>\nstream\n${ct}\nendstream\nendobj\n`);
+  const xr=pos;let x='xref\n0 6\n0000000000 65535 f \n';for(let i=1;i<=5;i++)x+=String(off[i]).padStart(10,'0')+' 00000 n \n';push(x+`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);return new Blob(parts,{type:'application/pdf'});}
+function dlPDF(){if(!CERT.canvas)return toast('El diploma se está preparando…');try{saveBlob(makePDF(CERT.canvas.toDataURL('image/jpeg',.95),CERT.canvas.width,CERT.canvas.height),fileBase()+'.pdf');toast('📥 Diploma PDF descargado');}catch(e){toast('No se pudo generar el PDF. Descarga el PNG.');}}
+function restart(){try{localStorage.removeItem(KEY);}catch(e){}location.reload();}
+
+/* ── índice ── */
+function openIndex(){
+  const rows=[{e:'📖',t:'Portada',s:'',i:0},{e:'🎭',t:'El reparto',s:'Personajes y funciones',i:1}];
+  CH.forEach((c,i)=>{const k=PAGES.findIndex(p=>p.k==='chcover'&&p.i===i);rows.push({e:c.ic,t:`Capítulo ${c.n} · ${c.title}`,s:`${c.year} · ${c.area}`,i:k,st:chStars(i),q:S.quotes[i]});});
+  rows.push({e:'🏆',t:'Epílogo · Clínica y diploma',s:'',i:PAGES.findIndex(p=>p.k==='clinic')});
+  $('mlist').innerHTML=rows.map(r=>`<button class="mrow" data-i="${r.i}" ${r.i>S.max?'disabled':''}><span class="e">${r.e}</span><span>${esc(r.t)}<small>${esc(r.s)}</small></span><span class="s">${r.st!==undefined?(r.st?'⭐'.repeat(r.st):'—'):''}${r.q?' 🦉':''}</span></button>`).join('');
+  $('mlist').querySelectorAll('.mrow').forEach(b=>b.onclick=()=>{$('modal').classList.remove('on');const t=+b.dataset.i;go(t,t>=S.idx?1:-1);});
+  $('modal').classList.add('on');
+}
+
+/* ── arranque ── */
+(function(){
+  $('prog').innerHTML=CH.map(()=>'<i><b></b></i>').join('');
+  $('prev').onclick=prev;$('next').onclick=next;$('idxBtn').onclick=openIndex;$('castBtn').onclick=()=>go(1,S.idx<1?1:-1);
+  $('mclose').onclick=()=>$('modal').classList.remove('on');$('modal').onclick=e=>{if(e.target.id==='modal')$('modal').classList.remove('on');};
+  addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'&&!$('next').disabled)next();if(e.key==='ArrowLeft'&&!$('prev').disabled)prev();if(e.key==='Escape')$('modal').classList.remove('on');});
+  let tx=null;const bk=$('book');bk.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+  bk.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>80){if(dx<0&&!$('next').disabled)next();else if(dx>0&&!$('prev').disabled)prev();}},{passive:true});
+  go(0,0);
+})();
+
+</script></body></html>
